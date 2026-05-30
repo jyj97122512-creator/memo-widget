@@ -281,7 +281,7 @@ export default function MemoWidget() {
 
         <section className="buddy-profilebar">
           <div className="buddy-profile-left">
-            <span className="buddy-face">🙂</span>
+            <img src="/icon-buddy-symbol.png" alt="버디" className="buddy-face" />
             <span className="buddy-profile-name">버디버디</span>
             <span className="buddy-profile-state">&#123;접속&#125;</span>
           </div>
