@@ -164,16 +164,16 @@ button { cursor: pointer; }
   box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #d0ddb5;
 }
 .buddy-nav-button {
-  min-height: 58px;
+  min-height: 44px;
   border: 1px solid transparent;
   background: transparent;
   color: #111;
-  padding: 4px 2px;
+  padding: 5px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 0;
 }
 .buddy-nav-button:hover {
   background: #f6fbdf;
@@ -475,7 +475,7 @@ button { cursor: pointer; }
   .buddy-toolbar { display:none; }
   .buddy-profilebar { height: 42px; flex-basis: 42px; }
   .buddy-sidebar { padding: 4px 3px; }
-  .buddy-nav-button { min-height: 53px; }
+  .buddy-nav-button { min-height: 42px; }
   .buddy-nav-icon { width: 28px; height: 28px; }
   .buddy-nav-label { font-size: 10px; }
   .buddy-listbar { height: auto; min-height: 42px; align-items:flex-start; flex-direction:column; gap:5px; padding: 7px; }

@@ -302,7 +302,6 @@ export default function MemoWidget() {
                 title={MENUS[key].title}
               >
                 <img src={`/icon-${key}.png`} alt={MENUS[key].label} className="buddy-nav-icon" />
-                <span className="buddy-nav-label">{MENUS[key].label}</span>
               </button>
             ))}
             <div className="buddy-sidebar-footer">
@@ -385,7 +384,7 @@ export default function MemoWidget() {
         </div>
 
         <footer className="buddy-statusbar">
-          <div className="buddy-status-cell">🌼 버디버디 7.0 서비스 중</div>
+          <div className="buddy-status-cell"><img src="/icon-service-star.png" alt="서비스" className="buddy-status-icon" />버디버디 7.0 서비스 중</div>
           <div className="buddy-progress"><div className="buddy-progress-box"><span /><span /><span /><span /><span /></div></div>
           <div className="buddy-status-cell"><img src={`/icon-${view}.png`} alt={currentMenu.label} className="buddy-status-icon" />{currentMenu.status}</div>
         </footer>
