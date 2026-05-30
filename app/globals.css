@@ -352,7 +352,8 @@ button { cursor: pointer; }
   border: none;
   line-height: 1;
 }
-.buddy-star-button { font-size: 24px; filter: drop-shadow(1px 1px 0 #fff); }
+.buddy-star-button { font-size: 24px; filter: grayscale(1) opacity(0.3); }
+.buddy-star-button.pinned { filter: drop-shadow(1px 1px 0 #fff); }
 .buddy-done-button {
   width: 31px; height: 31px;
   background: transparent;

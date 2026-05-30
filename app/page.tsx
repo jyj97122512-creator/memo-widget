@@ -80,8 +80,8 @@ function MemoCard({ memo, onToggleDone, onToggleImportant, onDelete }: {
         <p className="buddy-memo-content">{memo.content}</p>
         <p className="buddy-memo-time">{timeLabel(memo.createdAt)}</p>
       </div>
-      <button onClick={onToggleImportant} className="buddy-star-button" title={memo.pinned ? "중요 해제" : "중요 표시"}>
-        {memo.pinned ? "⭐" : "☆"}
+      <button onClick={onToggleImportant} className={`buddy-star-button${memo.pinned ? " pinned" : ""}`} title={memo.pinned ? "중요 해제" : "중요 표시"}>
+        ⭐
       </button>
       <button onClick={onToggleDone} className="buddy-done-button" title={memo.hearted ? "완료 취소" : "완료하기"}>
         {memo.hearted ? "💚" : "🤍"}
