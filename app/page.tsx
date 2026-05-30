@@ -246,7 +246,7 @@ export default function MemoWidget() {
           <div className="title-left">
             <span className="bear">🐻</span>
             <div>
-              <strong>버디메모</strong>
+              <strong>★ メモリスト</strong>
               <span>{loading ? "불러오는 중..." : "온라인"}</span>
             </div>
           </div>
