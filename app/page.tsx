@@ -305,7 +305,7 @@ export default function MemoWidget() {
               </button>
             ))}
             <div className="buddy-sidebar-footer">
-              <div className="buddy-mini-stickers"><span>🐻</span><span>🍀</span></div>
+              <div className="buddy-mini-stickers"><img src="/icon-service-star.png" alt="" className="buddy-mini-sticker" /><img src="/icon-service-star.png" alt="" className="buddy-mini-sticker" /></div>
               <div>버디메모<br />7.0</div>
             </div>
           </aside>

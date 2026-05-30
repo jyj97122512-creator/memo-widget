@@ -198,7 +198,8 @@ button { cursor: pointer; }
   font-weight: 900;
   line-height: 1.25;
 }
-.buddy-mini-stickers { display:flex; justify-content:center; gap:3px; margin-bottom: 4px; font-size: 22px; }
+.buddy-mini-stickers { display:flex; justify-content:center; gap:3px; margin-bottom: 4px; }
+.buddy-mini-sticker { width: 22px; height: 22px; object-fit: contain; }
 
 .buddy-main {
   min-width: 0;
