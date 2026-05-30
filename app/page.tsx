@@ -84,7 +84,7 @@ function MemoCard({ memo, onToggleDone, onToggleImportant, onDelete }: {
         {memo.pinned ? "⭐" : "☆"}
       </button>
       <button onClick={onToggleDone} className="buddy-done-button" title={memo.hearted ? "완료 취소" : "완료하기"}>
-        {memo.hearted ? "🤍" : "💚"}
+        {memo.hearted ? "💚" : "🤍"}
       </button>
       <button onClick={onDelete} className="buddy-delete-button" title="삭제">×</button>
     </div>
