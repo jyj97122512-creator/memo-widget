@@ -314,7 +314,7 @@ export default function MemoWidget() {
           <main className="buddy-main">
             <div className="buddy-listbar">
               <div className="buddy-list-title">
-                <span className="buddy-list-icon">{currentMenu.icon}</span>
+                <img src={`/icon-${view}.png`} alt={currentMenu.label} className="buddy-list-icon" />
                 <span className="buddy-list-text">{currentMenu.title}</span>
               </div>
               <div className="buddy-counts">
@@ -333,7 +333,7 @@ export default function MemoWidget() {
 
               {!loading && displayMemos.length === 0 && (
                 <div className="buddy-empty">
-                  <span className="buddy-empty-icon">{currentMenu.icon}</span>
+                  <img src={`/icon-${view}.png`} alt={currentMenu.label} className="buddy-empty-icon" />
                   <span>{currentMenu.empty}</span>
                 </div>
               )}
@@ -387,7 +387,7 @@ export default function MemoWidget() {
         <footer className="buddy-statusbar">
           <div className="buddy-status-cell">🌼 버디버디 7.0 서비스 중</div>
           <div className="buddy-progress"><div className="buddy-progress-box"><span /><span /><span /><span /><span /></div></div>
-          <div className="buddy-status-cell">{currentMenu.icon} {currentMenu.status}</div>
+          <div className="buddy-status-cell"><img src={`/icon-${view}.png`} alt={currentMenu.label} className="buddy-status-icon" />{currentMenu.status}</div>
         </footer>
       </div>
     </div>

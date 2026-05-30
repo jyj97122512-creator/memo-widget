@@ -220,7 +220,7 @@ button { cursor: pointer; }
   border-bottom: 1px solid #bdcda0;
 }
 .buddy-list-title { display:flex; align-items:center; gap: 7px; min-width:0; }
-.buddy-list-icon { font-size: 25px; filter: drop-shadow(1px 1px 0 #fff); }
+.buddy-list-icon { width: 25px; height: 25px; object-fit: contain; display: inline-block; vertical-align: middle; filter: drop-shadow(1px 1px 0 #fff); }
 .buddy-list-text { font-size: 14px; font-weight: 900; color: #526733; white-space: nowrap; overflow:hidden; text-overflow:ellipsis; }
 .buddy-counts { display:flex; align-items:center; gap: 5px; }
 .buddy-count-chip {
@@ -285,7 +285,7 @@ button { cursor: pointer; }
   font-size: 13px;
   text-align:center;
 }
-.buddy-empty-icon { font-size: 32px; filter: drop-shadow(1px 1px 0 #fff); }
+.buddy-empty-icon { width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto 4px; filter: drop-shadow(1px 1px 0 #fff); }
 
 .buddy-memo-row {
   display:grid;
@@ -419,6 +419,7 @@ button { cursor: pointer; }
   font-size: 12px;
   font-weight: 800;
 }
+.buddy-status-icon { width: 16px; height: 16px; object-fit: contain; flex-shrink: 0; }
 .buddy-status-cell {
   height: 21px;
   display:flex;
