@@ -11,15 +11,32 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
+  background: #f8f8ef;
+}
+
+body {
+  overflow: hidden;
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f5f7ea;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
-  border-radius: 2px;
+  background: #b9cc93;
+  border-radius: 999px;
+  border: 1px solid #eef4dd;
+}
+
+::selection {
+  background: #dce9c6;
+}
+
+button,
+textarea {
+  font-family: inherit;
 }
