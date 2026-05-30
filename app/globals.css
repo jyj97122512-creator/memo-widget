@@ -378,6 +378,7 @@ button { cursor: pointer; }
   color: #2a4a18;
 }
 .bsb-icon { font-size: 14px; line-height: 1; }
+.buddy-select-star:not(.sel-on) .bsb-icon { filter: grayscale(1); opacity: 0.3; }
 .bsb-label { font-size: 11px; font-weight: 700; }
 .bsb-arrow { font-size: 9px; color: #7a8a60; margin-left: 1px; }
 
