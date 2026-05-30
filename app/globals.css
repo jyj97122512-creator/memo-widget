@@ -352,13 +352,17 @@ button { cursor: pointer; }
   border: none;
   line-height: 1;
 }
-.buddy-star-button { font-size: 24px; filter: grayscale(1) opacity(0.3); }
+.buddy-star-button {
+  width: 32px; height: 32px;
+  font-size: 22px;
+  filter: grayscale(1) opacity(0.3);
+}
 .buddy-star-button.pinned { filter: drop-shadow(1px 1px 0 #fff); }
 .buddy-done-button {
-  width: 31px; height: 31px;
+  width: 32px; height: 32px;
   background: transparent;
   border: none;
-  font-size: 21px;
+  font-size: 22px;
 }
 .buddy-delete-button {
   font-size: 18px;
