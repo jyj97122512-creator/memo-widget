@@ -15,18 +15,16 @@ type MenuKey  = "file" | "list" | "tools" | "help";
 type ModalData = { title: string; body: React.ReactNode };
 type MenuItem  = { label: string; action: () => void } | { sep: true };
 
-const DAILY_QUOTES = [
-  "조금씩이라도 하면 된다.",
-  "오늘 하루도 잘 해냈어요.",
-  "작은 한 걸음이 큰 변화를 만들어요.",
-  "지금 이 순간, 충분히 잘하고 있어요.",
-  "포기하지 않는 것 자체가 대단한 일이에요.",
-  "오늘의 노력은 내일의 나를 만들어요.",
-  "완벽하지 않아도 괜찮아요. 그냥 해요.",
-  "한 번에 하나씩, 천천히 가도 됩니다.",
-  "지쳐도 멈추지 않으면 결국엔 도착해요.",
-  "당신은 생각보다 훨씬 잘 하고 있어요.",
-];
+async function getRandomCheerMessage(): Promise<string> {
+  try {
+    const res = await fetch("/cheer-messages.json");
+    const data = await res.json();
+    const messages: { text: string }[] = data.messages;
+    return messages[Math.floor(Math.random() * messages.length)].text;
+  } catch {
+    return "오늘도 충분히 잘하고 있어요.";
+  }
+}
 
 const VIEWS: Record<ViewMode, { label: string; title: string; empty: string; status: string }> = {
   all:       { label: "전체",  title: "전체보기",     empty: "이 목록에는 아직 메모가 없어요.",  status: "버디메모 전체 목록을 보고 있어요." },
@@ -404,8 +402,8 @@ export default function MemoWidget() {
           <div className="buddy-toolbar">
             <button
               className="buddy-toolbar-item"
-              onClick={() => {
-                const quote = DAILY_QUOTES[new Date().getDate() % DAILY_QUOTES.length];
+              onClick={async () => {
+                const quote = await getRandomCheerMessage();
                 setModal({
                   title: "✨ 오늘의 응원",
                   body: (
