@@ -15,6 +15,19 @@ type MenuKey  = "file" | "list" | "tools" | "help";
 type ModalData = { title: string; body: React.ReactNode };
 type MenuItem  = { label: string; action: () => void } | { sep: true };
 
+const DAILY_QUOTES = [
+  "조금씩이라도 하면 된다.",
+  "오늘 하루도 잘 해냈어요.",
+  "작은 한 걸음이 큰 변화를 만들어요.",
+  "지금 이 순간, 충분히 잘하고 있어요.",
+  "포기하지 않는 것 자체가 대단한 일이에요.",
+  "오늘의 노력은 내일의 나를 만들어요.",
+  "완벽하지 않아도 괜찮아요. 그냥 해요.",
+  "한 번에 하나씩, 천천히 가도 됩니다.",
+  "지쳐도 멈추지 않으면 결국엔 도착해요.",
+  "당신은 생각보다 훨씬 잘 하고 있어요.",
+];
+
 const VIEWS: Record<ViewMode, { label: string; title: string; empty: string; status: string }> = {
   all:       { label: "전체",  title: "전체보기",     empty: "이 목록에는 아직 메모가 없어요.",  status: "버디메모 전체 목록을 보고 있어요." },
   active:    { label: "진행중", title: "진행중인 메모", empty: "진행중인 메모가 없어요.",           status: "아직 끝나지 않은 메모예요." },
@@ -385,9 +398,35 @@ export default function MemoWidget() {
             <span className="buddy-profile-state">&#123;접속&#125;</span>
           </div>
           <div className="buddy-toolbar">
-            <span className="buddy-toolbar-item"><img src="/icon-mail-plus.png" alt="쪽지+" className="buddy-toolbar-icon" />쪽지+</span>
-            <span className="buddy-toolbar-item"><img src="/icon-home.png" alt="홈페이지" className="buddy-toolbar-icon" />홈페이지</span>
-            <span className="buddy-toolbar-item"><img src="/icon-itemshop.png" alt="마이템샵" className="buddy-toolbar-icon" />마이템샵</span>
+            <button
+              className="buddy-toolbar-item"
+              onClick={() => {
+                const quote = DAILY_QUOTES[new Date().getDate() % DAILY_QUOTES.length];
+                setModal({
+                  title: "✨ 오늘의 응원",
+                  body: (
+                    <div className="buddy-quote-body">
+                      <p className="buddy-quote-text">"{quote}"</p>
+                      <button className="buddy-quote-close" onClick={() => setModal(null)}>닫기</button>
+                    </div>
+                  ),
+                });
+              }}
+            >
+              <img src="/icon-mail-plus.png" alt="오늘의 한마디" className="buddy-toolbar-icon" />오늘의 한마디
+            </button>
+            <button
+              className="buddy-toolbar-item"
+              onClick={() => { setFocusMode(false); setView("all"); }}
+            >
+              <img src="/icon-home.png" alt="홈" className="buddy-toolbar-icon" />홈
+            </button>
+            <button
+              className="buddy-toolbar-item"
+              onClick={() => setModal({ title: "🎁 꾸미기", body: <p className="buddy-modal-info">꾸미기 기능은 준비 중이에요.</p> })}
+            >
+              <img src="/icon-itemshop.png" alt="꾸미기" className="buddy-toolbar-icon" />꾸미기
+            </button>
           </div>
         </section>
 
