@@ -141,7 +141,7 @@ button { cursor: pointer; }
 .buddy-profile-state { margin-left: 4px; font-size: 13px; font-weight: 700; }
 .buddy-toolbar { display:flex; align-items:center; gap: 14px; font-size: 13px; font-weight: 800; }
 .buddy-toolbar-item { display:flex; align-items:center; gap: 4px; white-space: nowrap; }
-.buddy-toolbar-icon { font-size: 20px; filter: drop-shadow(1px 1px 0 #fff); }
+.buddy-toolbar-icon { width: 20px; height: 20px; object-fit: contain; display: inline-block; vertical-align: middle; filter: drop-shadow(1px 1px 0 #fff); }
 
 .buddy-body {
   min-height: 0;

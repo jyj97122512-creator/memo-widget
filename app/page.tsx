@@ -286,9 +286,9 @@ export default function MemoWidget() {
             <span className="buddy-profile-state">&#123;접속&#125;</span>
           </div>
           <div className="buddy-toolbar">
-            <span className="buddy-toolbar-item"><span className="buddy-toolbar-icon">✏️</span>쪽지+</span>
-            <span className="buddy-toolbar-item"><span className="buddy-toolbar-icon">🏠</span>홈페이지</span>
-            <span className="buddy-toolbar-item"><span className="buddy-toolbar-icon">💼</span>마이템샵</span>
+            <span className="buddy-toolbar-item"><img src="/icon-mail-plus.png" alt="쪽지+" className="buddy-toolbar-icon" />쪽지+</span>
+            <span className="buddy-toolbar-item"><img src="/icon-home.png" alt="홈페이지" className="buddy-toolbar-icon" />홈페이지</span>
+            <span className="buddy-toolbar-item"><img src="/icon-itemshop.png" alt="마이템샵" className="buddy-toolbar-icon" />마이템샵</span>
           </div>
         </section>
 
