@@ -355,11 +355,8 @@ button { cursor: pointer; }
 .buddy-star-button { font-size: 24px; filter: drop-shadow(1px 1px 0 #fff); }
 .buddy-done-button {
   width: 31px; height: 31px;
-  background: linear-gradient(180deg, #fffffb, #e6ebd3);
-  border-top: 1px solid #fff;
-  border-left: 1px solid #fff;
-  border-right: 1px solid #929b7d;
-  border-bottom: 1px solid #929b7d;
+  background: transparent;
+  border: none;
   font-size: 21px;
 }
 .buddy-delete-button {
