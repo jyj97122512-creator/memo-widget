@@ -2,473 +2,437 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
+/* ── 전역 리셋 ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
+html, body {
   height: 100%;
-  background: transparent;
+  font-family: 'GulimChe', '굴림체', 'Gulim', '굴림', Tahoma, 'MS Sans Serif', sans-serif;
+  font-size: 12px;
+  background: #c0c0c0;
+  color: #000000;
+  -webkit-font-smoothing: none;
 }
 
-button,
-textarea {
-  font: inherit;
-}
+button, textarea, input { font: inherit; cursor: default; }
 
-button {
-  cursor: pointer;
-}
-
-::-webkit-scrollbar {
-  width: 5px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+/* ── Win98 스크롤바 ──────────────────────────────────── */
+::-webkit-scrollbar { width: 17px; }
+::-webkit-scrollbar-track { background: #c0c0c0; }
 ::-webkit-scrollbar-thumb {
-  background: #c6d4a8;
-  border-radius: 999px;
+  background: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
 }
 
-.buddy-shell {
+/* ── 데스크탑 ────────────────────────────────────────── */
+.win98-desktop {
   min-height: 100vh;
-  padding: 10px;
-  background: transparent;
-  color: #4b4a3f;
+  padding: 4px;
+  background: #c0c0c0;
 }
 
-.buddy-window {
-  position: relative;
+/* ── 창 ──────────────────────────────────────────────── */
+.win98-window {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 20px);
+  height: calc(100vh - 8px);
   min-height: 420px;
-  overflow: hidden;
-  border: 2px solid #a9bd82;
-  border-radius: 18px;
-  background: #f8f7ec;
-  box-shadow: 0 10px 24px rgba(86, 101, 58, 0.18), inset 0 1px 0 #fffef6;
+  background: #d4d0c8;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  outline: 1px solid #000000;
 }
 
-.buddy-window::before {
-  content: "🍓";
-  position: absolute;
-  top: 44px;
-  right: 12px;
-  z-index: 3;
-  font-size: 20px;
-  transform: rotate(12deg);
-}
-
-.buddy-titlebar {
-  height: 54px;
+/* ── 타이틀바 ────────────────────────────────────────── */
+.win98-titlebar {
+  height: 22px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background: linear-gradient(180deg, #e7f0cf 0%, #c3d99a 100%);
-  border-bottom: 1px solid #9eb877;
+  padding: 0 3px;
+  background: linear-gradient(90deg, #0a246a 0%, #4f8ef7 100%);
+  user-select: none;
 }
 
-.title-left {
+.titlebar-left {
   display: flex;
   align-items: center;
-  gap: 9px;
-}
-
-.title-left .bear {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #96ad6e;
-  border-radius: 11px;
-  background: #fffdf2;
-  box-shadow: inset 0 1px 0 #ffffff;
-}
-
-.title-left strong {
-  display: block;
-  font-size: 15px;
-  line-height: 1.1;
-  color: #38442b;
-}
-
-.title-left span:not(.bear) {
-  display: block;
-  margin-top: 2px;
-  font-size: 10px;
-  color: #697d4c;
-}
-
-.window-buttons {
-  display: flex;
   gap: 4px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: bold;
 }
 
-.window-buttons span {
-  width: 18px;
-  height: 18px;
+.titlebar-btns {
+  display: flex;
+  gap: 2px;
+}
+
+.titlebar-btn {
+  width: 16px;
+  height: 14px;
+  background: #c0c0c0;
+  color: #000000;
+  font-size: 9px;
+  font-weight: bold;
+  line-height: 1;
+  border-top: 1px solid #ffffff;
+  border-left: 1px solid #ffffff;
+  border-right: 1px solid #808080;
+  border-bottom: 1px solid #808080;
   display: grid;
   place-items: center;
-  border: 1px solid #8fa96b;
-  border-radius: 4px;
-  background: #fffef5;
-  color: #6a7c51;
-  font-size: 10px;
-  line-height: 1;
 }
 
-.buddy-body {
-  min-height: 0;
-  flex: 1;
-  display: flex;
-  background: repeating-linear-gradient(
-    0deg,
-    #fbfaef,
-    #fbfaef 27px,
-    #f0efdf 28px
-  );
+.titlebar-btn:active {
+  border-top: 1px solid #808080;
+  border-left: 1px solid #808080;
+  border-right: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
 }
 
-.buddy-sidebar {
-  width: 56px;
-  padding: 10px 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  border-right: 1px solid #c5d4a5;
-  background: #edf4dd;
-}
-
-.side-icon {
-  min-height: 48px;
-  padding: 5px 2px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: transparent;
-  color: #607344;
-  transition: 0.14s ease;
-}
-
-.side-icon span {
-  display: block;
-  font-size: 18px;
-  line-height: 1.1;
-}
-
-.side-icon small {
-  display: block;
-  margin-top: 3px;
-  font-size: 9px;
-  letter-spacing: -0.04em;
-}
-
-.side-icon:hover,
-.side-icon.active {
-  border-color: #9fb878;
-  background: #fffef4;
-  box-shadow: 0 2px 4px rgba(78, 93, 52, 0.1);
-}
-
-.buddy-main {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-}
-
-.status-card {
-  padding: 9px 10px;
-  border: 1px solid #c3d2a1;
-  border-radius: 12px;
-  background: #fffef6;
-  box-shadow: inset 0 1px 0 #ffffff;
-}
-
-.status-card div {
+/* ── 메뉴바 ─────────────────────────────────────────── */
+.win98-menubar {
+  height: 20px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #4f6235;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #78b83f;
-  box-shadow: 0 0 0 3px #e3f0d0;
-}
-
-.status-card p {
-  margin: 5px 0 0;
+  padding: 0 2px;
+  background: #d4d0c8;
+  border-bottom: 1px solid #808080;
   font-size: 11px;
-  color: #7b735f;
 }
 
-.memo-counter-row {
+.menu-item {
+  padding: 1px 6px;
+  height: 18px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin: 8px 0;
-  font-size: 10px;
-  color: #6b7f4c;
 }
 
-.memo-counter-row span,
-.memo-counter-row button {
-  border: 1px solid #bfd09d;
-  border-radius: 999px;
-  background: #fffef6;
-  padding: 4px 8px;
-}
+.menu-item:hover { background: #0a246a; color: #ffffff; }
 
-.memo-counter-row button {
-  margin-left: auto;
-  color: #617747;
-}
-
-.memo-list {
-  min-height: 0;
+/* ── 본문 ────────────────────────────────────────────── */
+.win98-body {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-  padding-right: 2px;
+  min-height: 0;
+  border-top: 1px solid #808080;
 }
 
-.buddy-memo-card {
-  position: relative;
-  display: flex;
-  gap: 8px;
-  padding: 9px;
-  border: 1px solid #c8d8a8;
-  border-radius: 12px;
-  background: #fffef7;
-  box-shadow: 0 2px 5px rgba(87, 101, 60, 0.08);
-}
-
-.buddy-memo-card.is-important {
-  border-color: #d1ad51;
-  background: #fffaf0;
-}
-
-.buddy-memo-card.is-done {
-  opacity: 0.72;
-}
-
-.memo-action-row {
-  width: 28px;
+/* ── 사이드바 ────────────────────────────────────────── */
+.win98-sidebar {
+  width: 52px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
   align-items: center;
+  gap: 2px;
+  padding: 4px 3px;
+  background: #d4d0c8;
+  border-right: 1px solid #808080;
 }
 
-.tiny-icon-button {
-  width: 25px;
-  height: 25px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #c3d2a1;
-  border-radius: 8px;
-  background: #fffef9;
-  color: #95a875;
-  font-size: 14px;
-  transition: 0.12s ease;
-}
-
-.tiny-icon-button:hover,
-.tiny-icon-button.active {
-  transform: translateY(-1px);
-  border-color: #9db873;
-  background: #edf7dc;
-}
-
-.star-button.active {
-  border-color: #d3ad44;
-  background: #fff4c6;
-}
-
-.done-button.active {
-  border-color: #8db36d;
-  background: #eaf5d9;
-}
-
-.memo-content-wrap {
-  min-width: 0;
-  flex: 1;
-}
-
-.memo-label-row {
-  min-height: 16px;
+.side-btn {
+  width: 46px;
+  min-height: 46px;
   display: flex;
-  gap: 4px;
-  margin-bottom: 3px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 3px 2px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #000000;
 }
 
-.memo-badge {
+.side-btn span { font-size: 18px; line-height: 1; display: block; }
+.side-btn small { font-size: 8px; display: block; letter-spacing: -0.03em; }
+.side-btn:hover { border: 1px dotted #000000; }
+
+.side-btn.active {
+  background: #0a246a;
+  color: #ffffff;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+}
+
+/* ── 메인 영역 ───────────────────────────────────────── */
+.win98-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 5px;
+  gap: 4px;
+}
+
+/* ── 상태바 ─────────────────────────────────────────── */
+.win98-statusbar {
+  padding: 2px 6px;
+  background: #d4d0c8;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+/* ── 카운터 행 ───────────────────────────────────────── */
+.counter-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.counter-chip {
+  padding: 1px 6px;
+  font-size: 10px;
+  background: #d4d0c8;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+}
+
+/* ── 메모 리스트 ─────────────────────────────────────── */
+.memo-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 0;
+}
+
+/* ── 메모 카드 (포스트잇) ────────────────────────────── */
+.memo-card {
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+  background: #ffffe1;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+}
+
+.memo-card.is-important { background: #fff7c2; }
+.memo-card.is-done { opacity: 0.65; }
+.memo-card.is-done .memo-text {
+  text-decoration: line-through;
+  color: #808080;
+}
+
+/* ── 메모 액션 버튼 열 ───────────────────────────────── */
+.memo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Win98 범용 버튼 ─────────────────────────────────── */
+.win98-btn {
   display: inline-flex;
   align-items: center;
-  height: 16px;
-  padding: 0 6px;
-  border-radius: 999px;
+  justify-content: center;
+  padding: 2px 8px;
+  min-width: 24px;
+  height: 22px;
+  background: #c0c0c0;
+  color: #000000;
+  font-size: 11px;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.win98-btn:active,
+.win98-btn.pressed {
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  padding-top: 3px;
+  padding-left: 9px;
+  padding-bottom: 1px;
+  padding-right: 7px;
+}
+
+.win98-btn:disabled {
+  color: #808080;
+  text-shadow: 1px 1px 0 #ffffff;
+}
+
+.win98-btn.sm {
+  height: 20px;
+  font-size: 13px;
+  padding: 1px 4px;
+  min-width: 20px;
+}
+
+.win98-btn.sm:active,
+.win98-btn.sm.pressed {
+  padding-top: 2px;
+  padding-left: 5px;
+  padding-bottom: 0;
+  padding-right: 3px;
+}
+
+/* ── 메모 내용 ───────────────────────────────────────── */
+.memo-body { flex: 1; min-width: 0; }
+
+.memo-label-row {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 3px;
+  min-height: 14px;
+}
+
+.win98-badge {
   font-size: 9px;
-  border: 1px solid #c8d8a8;
-  background: #f4f8e8;
-  color: #677a48;
+  padding: 0 4px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  background: #c0c0c0;
+  border-top: 1px solid #808080;
+  border-left: 1px solid #808080;
+  border-right: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
 }
 
-.memo-badge.important {
-  border-color: #dab95f;
-  background: #fff3c4;
-  color: #8c6d1f;
-}
+.win98-badge.important { background: #ffe680; }
+.win98-badge.done { background: #a8d8a8; }
 
-.memo-badge.done {
-  border-color: #a9c98d;
-  background: #edf7dd;
-  color: #5a7a3f;
-}
-
-.memo-content {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: 12px;
+.memo-text {
+  font-size: 11px;
   line-height: 1.65;
-  color: #49473e;
+  word-break: break-word;
+  white-space: pre-wrap;
+  color: #000000;
 }
 
-.buddy-memo-card.is-done .memo-content {
-  text-decoration: line-through;
-  color: #8a877a;
-}
-
-.memo-meta-row {
-  margin-top: 6px;
+.memo-meta {
+  margin-top: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
   font-size: 10px;
-  color: #98927f;
+  color: #808080;
 }
 
-.delete-text-button {
-  opacity: 0;
-  border: 0;
+.delete-btn {
+  font-size: 10px;
+  color: #808080;
   background: transparent;
-  color: #b36b5b;
-  font-size: 10px;
-  transition: opacity 0.12s ease;
+  border: none;
+  padding: 0;
+  opacity: 0;
 }
 
-.delete-text-button.visible {
-  opacity: 1;
-}
+.delete-btn.visible { opacity: 1; }
+.delete-btn:hover { color: #cc0000; }
 
-.buddy-input-area {
+/* ── 입력 영역 ───────────────────────────────────────── */
+.win98-input-area {
   display: flex;
-  gap: 7px;
+  gap: 5px;
   align-items: flex-end;
-  padding: 10px;
-  border-top: 1px solid #aec489;
-  background: #e8f0d2;
+  padding: 5px;
+  background: #d4d0c8;
+  border-top: 2px solid #808080;
+  flex-shrink: 0;
 }
 
-.buddy-input-area textarea {
+.win98-textarea {
   flex: 1;
   min-height: 38px;
   max-height: 120px;
   resize: none;
   outline: none;
-  padding: 10px 11px;
-  border: 1px solid #a9bd82;
-  border-radius: 12px;
-  background: #fffef8;
-  color: #4b4a3f;
+  padding: 3px 5px;
+  background: #ffffff;
+  color: #000000;
   font-size: 12px;
   line-height: 1.5;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  border-radius: 0;
 }
 
-.buddy-input-area textarea:focus {
-  border-color: #7fa352;
-  box-shadow: 0 0 0 3px rgba(169, 195, 126, 0.28);
-}
+.win98-textarea::placeholder { color: #808080; }
 
-.buddy-input-area button {
-  min-height: 38px;
-  padding: 0 12px;
-  border: 1px solid #8ca863;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #fffef4, #c8dc9d);
-  color: #41572d;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.buddy-input-area button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.empty-box,
-.error-box {
-  border: 1px dashed #c3d2a1;
-  border-radius: 12px;
-  background: rgba(255, 254, 246, 0.76);
-  padding: 18px 10px;
+/* ── 빈 상태 / 오류 ─────────────────────────────────── */
+.win98-empty {
+  padding: 20px;
   text-align: center;
-  color: #8a846e;
-  font-size: 12px;
+  font-size: 11px;
+  color: #808080;
+  background: #d4d0c8;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
 }
 
-.empty-box span {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 24px;
+.win98-error-inline {
+  padding: 4px 6px;
+  background: #ffffff;
+  border: 1px solid #cc0000;
+  color: #cc0000;
+  font-size: 11px;
 }
 
-.buddy-error-screen {
+/* ── 에러 전체화면 ───────────────────────────────────── */
+.win98-error-screen {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
+  background: #c0c0c0;
   padding: 24px;
-  background: #f8f7ec;
-  color: #4b4a3f;
   text-align: center;
 }
 
-.buddy-error-screen h2 {
-  margin: 0;
-  font-size: 16px;
+.win98-dialog {
+  background: #d4d0c8;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  outline: 1px solid #000000;
+  width: 300px;
 }
 
-.buddy-error-screen p {
-  max-width: 320px;
-  margin: 0;
-  font-size: 12px;
+.win98-dialog-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
   line-height: 1.6;
-  color: #766f5c;
-}
-
-.buddy-error-screen button {
-  padding: 9px 14px;
-  border: 1px solid #8ca863;
-  border-radius: 12px;
-  background: #e8f0d2;
 }

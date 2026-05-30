@@ -5,8 +5,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 type Memo = {
   id: string;
   content: string;
-  hearted: boolean; // 완료 여부로 사용
-  pinned: boolean; // 중요 여부로 사용
+  hearted: boolean;
+  pinned: boolean;
   createdAt: string;
 };
 
@@ -38,6 +38,14 @@ function isToday(dateString: string): boolean {
   );
 }
 
+const VIEW_ITEMS: { key: ViewMode; icon: string; label: string }[] = [
+  { key: "all",       icon: "👥", label: "전체"   },
+  { key: "active",    icon: "💌", label: "진행중" },
+  { key: "done",      icon: "✅", label: "완료"   },
+  { key: "important", icon: "⭐", label: "중요"   },
+  { key: "today",     icon: "📅", label: "오늘"   },
+];
+
 function MemoCard({
   memo,
   onToggleDone,
@@ -52,61 +60,51 @@ function MemoCard({
   const [hovered, setHovered] = useState(false);
 
   return (
-    <article
-      className={`buddy-memo-card ${memo.hearted ? "is-done" : ""} ${
-        memo.pinned ? "is-important" : ""
-      }`}
+    <div
+      className={`memo-card${memo.hearted ? " is-done" : ""}${memo.pinned ? " is-important" : ""}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="memo-action-row" aria-label="메모 상태 변경">
+      <div className="memo-actions">
         <button
           type="button"
           onClick={onToggleDone}
           title={memo.hearted ? "완료 취소" : "완료하기"}
-          className={`tiny-icon-button done-button ${memo.hearted ? "active" : ""}`}
+          className={`win98-btn sm${memo.hearted ? " pressed" : ""}`}
         >
-          {memo.hearted ? "✅" : "♡"}
+          {memo.hearted ? "✅" : "☐"}
         </button>
         <button
           type="button"
           onClick={onToggleImportant}
           title={memo.pinned ? "중요 해제" : "중요 표시"}
-          className={`tiny-icon-button star-button ${memo.pinned ? "active" : ""}`}
+          className={`win98-btn sm${memo.pinned ? " pressed" : ""}`}
         >
           {memo.pinned ? "⭐" : "☆"}
         </button>
       </div>
 
-      <div className="memo-content-wrap">
+      <div className="memo-body">
         <div className="memo-label-row">
-          {memo.pinned && <span className="memo-badge important">중요</span>}
-          {memo.hearted && <span className="memo-badge done">완료</span>}
+          {memo.pinned && <span className="win98-badge important">중요</span>}
+          {memo.hearted && <span className="win98-badge done">완료</span>}
         </div>
-        <p className="memo-content">{memo.content}</p>
-        <div className="memo-meta-row">
+        <p className="memo-text">{memo.content}</p>
+        <div className="memo-meta">
           <span>{timeAgo(memo.createdAt)}</span>
           <button
             type="button"
             onClick={onDelete}
+            className={`delete-btn${hovered ? " visible" : ""}`}
             title="삭제"
-            className={`delete-text-button ${hovered ? "visible" : ""}`}
           >
-            삭제
+            [삭제]
           </button>
         </div>
       </div>
-    </article>
+    </div>
   );
 }
-
-const VIEW_ITEMS: { key: ViewMode; icon: string; label: string }[] = [
-  { key: "all", icon: "🏠", label: "전체" },
-  { key: "active", icon: "☘️", label: "진행중" },
-  { key: "done", icon: "✅", label: "완료" },
-  { key: "important", icon: "⭐", label: "중요" },
-  { key: "today", icon: "📅", label: "오늘" },
-];
 
 export default function MemoWidget() {
   const [memos, setMemos] = useState<Memo[]>([]);
@@ -132,9 +130,7 @@ export default function MemoWidget() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchMemos();
-  }, [fetchMemos]);
+  useEffect(() => { fetchMemos(); }, [fetchMemos]);
 
   useEffect(() => {
     const ta = textareaRef.current;
@@ -167,38 +163,30 @@ export default function MemoWidget() {
   };
 
   const toggleDone = async (id: string, current: boolean) => {
-    setMemos((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, hearted: !current } : m))
-    );
+    setMemos((prev) => prev.map((m) => (m.id === id ? { ...m, hearted: !current } : m)));
     try {
       const res = await fetch(`/api/memos/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ hearted: !current }),
       });
-      if (!res.ok) throw new Error("완료 상태 업데이트 실패");
+      if (!res.ok) throw new Error();
     } catch {
-      setMemos((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, hearted: current } : m))
-      );
+      setMemos((prev) => prev.map((m) => (m.id === id ? { ...m, hearted: current } : m)));
     }
   };
 
   const toggleImportant = async (id: string, current: boolean) => {
-    setMemos((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, pinned: !current } : m))
-    );
+    setMemos((prev) => prev.map((m) => (m.id === id ? { ...m, pinned: !current } : m)));
     try {
       const res = await fetch(`/api/memos/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pinned: !current }),
       });
-      if (!res.ok) throw new Error("중요 상태 업데이트 실패");
+      if (!res.ok) throw new Error();
     } catch {
-      setMemos((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, pinned: current } : m))
-      );
+      setMemos((prev) => prev.map((m) => (m.id === id ? { ...m, pinned: current } : m)));
     }
   };
 
@@ -207,65 +195,85 @@ export default function MemoWidget() {
     setMemos((prev) => prev.filter((m) => m.id !== id));
     try {
       const res = await fetch(`/api/memos/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("삭제 실패");
+      if (!res.ok) throw new Error();
     } catch {
       setMemos(snapshot);
     }
   };
 
   const displayMemos = memos.filter((memo) => {
-    if (viewMode === "active") return !memo.hearted;
-    if (viewMode === "done") return memo.hearted;
+    if (viewMode === "active")    return !memo.hearted;
+    if (viewMode === "done")      return memo.hearted;
     if (viewMode === "important") return memo.pinned;
-    if (viewMode === "today") return isToday(memo.createdAt);
+    if (viewMode === "today")     return isToday(memo.createdAt);
     return true;
   });
 
-  const activeCount = memos.filter((m) => !m.hearted).length;
-  const doneCount = memos.filter((m) => m.hearted).length;
+  const activeCount    = memos.filter((m) => !m.hearted).length;
+  const doneCount      = memos.filter((m) => m.hearted).length;
   const importantCount = memos.filter((m) => m.pinned).length;
 
+  /* ── 에러: 페이지 미공유 ──────────────────────────── */
   if (!loading && error?.includes("NO_PAGES_ACCESSIBLE")) {
     return (
-      <div className="buddy-error-screen">
-        <span className="error-emoji">🔐</span>
-        <h2>노션 페이지 공유 필요</h2>
-        <p>
-          인테그레이션에 최소 1개의 노션 페이지를 공유해야 데이터베이스가 자동
-          생성됩니다.
-        </p>
-        <button onClick={fetchMemos}>다시 시도</button>
+      <div className="win98-error-screen">
+        <div className="win98-dialog">
+          <div className="win98-titlebar">
+            <div className="titlebar-left"><span>⚠️</span><span>오류</span></div>
+            <div className="titlebar-btns">
+              <button className="titlebar-btn">×</button>
+            </div>
+          </div>
+          <div className="win98-dialog-body">
+            <span style={{ fontSize: 32 }}>🔐</span>
+            <p>
+              인테그레이션에 최소 1개의 노션 페이지를<br />
+              공유해야 데이터베이스가 자동 생성됩니다.
+            </p>
+            <button className="win98-btn" onClick={fetchMemos}>확인</button>
+          </div>
+        </div>
       </div>
     );
   }
 
+  /* ── 메인 UI ──────────────────────────────────────── */
   return (
-    <div className="buddy-shell">
-      <div className="buddy-window">
-        <header className="buddy-titlebar">
-          <div className="title-left">
-            <span className="bear">🐻</span>
-            <div>
-              <strong>★ メモリスト</strong>
-              <span>{loading ? "불러오는 중..." : "온라인"}</span>
-            </div>
+    <div className="win98-desktop">
+      <div className="win98-window">
+
+        {/* 타이틀바 */}
+        <header className="win98-titlebar">
+          <div className="titlebar-left">
+            <span>📁</span>
+            <span>★ メモリスト.exe</span>
           </div>
-          <div className="window-buttons" aria-hidden="true">
-            <span>_</span>
-            <span>□</span>
-            <span>×</span>
+          <div className="titlebar-btns">
+            <button className="titlebar-btn" aria-hidden="true">_</button>
+            <button className="titlebar-btn" aria-hidden="true">□</button>
+            <button className="titlebar-btn" aria-hidden="true">×</button>
           </div>
         </header>
 
-        <div className="buddy-body">
-          <aside className="buddy-sidebar" aria-label="메모 필터">
+        {/* 메뉴바 */}
+        <nav className="win98-menubar">
+          <span className="menu-item">메모(F)</span>
+          <span className="menu-item">보기(V)</span>
+          <span className="menu-item">도움말(H)</span>
+        </nav>
+
+        {/* 본문 */}
+        <div className="win98-body">
+
+          {/* 사이드바 */}
+          <aside className="win98-sidebar">
             {VIEW_ITEMS.map((item) => (
               <button
                 key={item.key}
                 type="button"
-                title={item.label}
+                className={`side-btn${viewMode === item.key ? " active" : ""}`}
                 onClick={() => setViewMode(item.key)}
-                className={`side-icon ${viewMode === item.key ? "active" : ""}`}
+                title={item.label}
               >
                 <span>{item.icon}</span>
                 <small>{item.label}</small>
@@ -273,33 +281,40 @@ export default function MemoWidget() {
             ))}
           </aside>
 
-          <section className="buddy-main">
-            <div className="status-card">
-              <div>
-                <span className="status-dot" />
-                <strong>오늘의 상태메시지</strong>
-              </div>
-              <p>작은 메모도 잊지 말고 저장하기 ✍️</p>
+          {/* 메인 */}
+          <section className="win98-main">
+
+            {/* 상태바 */}
+            <div className="win98-statusbar">
+              <span>★ メモリスト v1.0 &nbsp;{loading && "— 불러오는 중..."}</span>
             </div>
 
-            <div className="memo-counter-row">
-              <span>진행 {activeCount}</span>
-              <span>완료 {doneCount}</span>
-              <span>중요 {importantCount}</span>
-              <button type="button" onClick={fetchMemos} title="새로고침">
+            {/* 카운터 */}
+            <div className="counter-row">
+              <span className="counter-chip">진행 {activeCount}</span>
+              <span className="counter-chip">완료 {doneCount}</span>
+              <span className="counter-chip">중요 {importantCount}</span>
+              <button
+                type="button"
+                className="win98-btn sm"
+                style={{ marginLeft: "auto" }}
+                onClick={fetchMemos}
+                title="새로고침"
+              >
                 ↻
               </button>
             </div>
 
-            <main className="memo-list">
+            {/* 메모 목록 */}
+            <div className="memo-list">
               {error && !error.includes("NO_PAGES_ACCESSIBLE") && (
-                <div className="error-box">오류: {error}</div>
+                <div className="win98-error-inline">오류: {error}</div>
               )}
 
               {!loading && displayMemos.length === 0 && (
-                <div className="empty-box">
-                  <span>💌</span>
-                  <p>이 목록에는 아직 메모가 없어요.</p>
+                <div className="win98-empty">
+                  <div style={{ fontSize: 20, marginBottom: 4 }}>💌</div>
+                  이 목록에는 아직 메모가 없어요.
                 </div>
               )}
 
@@ -312,11 +327,12 @@ export default function MemoWidget() {
                   onDelete={() => deleteMemo(memo.id)}
                 />
               ))}
-            </main>
+            </div>
           </section>
         </div>
 
-        <footer className="buddy-input-area">
+        {/* 입력 영역 */}
+        <footer className="win98-input-area">
           <textarea
             ref={textareaRef}
             value={input}
@@ -327,13 +343,15 @@ export default function MemoWidget() {
                 sendMemo();
               }
             }}
-            placeholder="메모를 입력하세요..."
+            placeholder="메모를 입력하세요... (Enter 전송 / Shift+Enter 줄바꿈)"
             rows={1}
+            className="win98-textarea"
           />
           <button
             type="button"
             onClick={sendMemo}
             disabled={!input.trim() || sending}
+            className="win98-btn"
           >
             {sending ? "···" : "쪽지쓰기"}
           </button>
