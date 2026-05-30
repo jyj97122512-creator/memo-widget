@@ -53,27 +53,27 @@ function MemoCard({
     >
       <div className="mb-1.5 flex items-center justify-between gap-2 border-b border-dashed border-[#d7e2bd] pb-1.5">
         <div className="flex items-center gap-1.5 text-[12px] font-bold text-[#668348]">
-          <span>{memo.hearted ? "💌" : "☘️"}</span>
-          <span>오늘의 메모</span>
+          <span>{memo.hearted ? "✅" : "☘️"}</span>
+          <span>{memo.hearted ? "완료된 메모" : "오늘의 메모"}</span>
         </div>
         <span className="text-[11px] text-[#9aa87d]">{timeAgo(memo.createdAt)}</span>
       </div>
 
-      <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-[#4b4b3f]">
+      <p className={`whitespace-pre-wrap break-words text-[13px] leading-relaxed text-[#4b4b3f] transition-all ${memo.hearted ? "line-through opacity-50" : ""}`}>
         {memo.content}
       </p>
 
       <div className="mt-2 flex items-center justify-end gap-1.5">
         <button
           onClick={onHeart}
-          title={memo.hearted ? "하트 취소" : "하트"}
+          title={memo.hearted ? "완료 취소" : "완료하기"}
           className={`rounded-md border px-2 py-1 text-[11px] transition-all ${
             memo.hearted
-              ? "border-[#eaa5b6] bg-[#fff1f5] text-[#d94f77]"
+              ? "border-[#a8c88a] bg-[#f0fae8] text-[#4a8030]"
               : "border-[#cad8ae] bg-[#f8fbef] text-[#7f9661] hover:bg-[#eef6db]"
           }`}
         >
-          {memo.hearted ? "♥ 저장됨" : "♡ 저장"}
+          {memo.hearted ? "✅ 완료됨" : "☐ 완료하기"}
         </button>
 
         <button
@@ -288,14 +288,14 @@ export default function MemoWidget() {
                 </button>
                 <button
                   onClick={() => setShowHeartedOnly((v) => !v)}
-                  title={showHeartedOnly ? "전체 보기" : "하트만 보기"}
+                  title={showHeartedOnly ? "전체 보기" : "완료만 보기"}
                   className={`rounded-md border px-2 py-1 text-[12px] ${
                     showHeartedOnly
-                      ? "border-[#eaa5b6] bg-[#fff1f5] text-[#d94f77]"
+                      ? "border-[#a8c88a] bg-[#f0fae8] text-[#4a8030]"
                       : "border-[#bacd97] bg-[#fffef8] text-[#5f7a43] hover:bg-[#eef6db]"
                   }`}
                 >
-                  {showHeartedOnly ? "♥" : "♡"}
+                  {showHeartedOnly ? "✅ 완료만" : "☐ 전체"}
                 </button>
               </div>
             </div>
