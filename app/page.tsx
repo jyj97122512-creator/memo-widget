@@ -80,11 +80,15 @@ function MemoCard({ memo, onToggleDone, onToggleImportant, onDelete }: {
         <p className="buddy-memo-content">{memo.content}</p>
         <p className="buddy-memo-time">{timeLabel(memo.createdAt)}</p>
       </div>
-      <button onClick={onToggleImportant} className={`buddy-star-button${memo.pinned ? " pinned" : ""}`} title={memo.pinned ? "중요 해제" : "중요 표시"}>
-        ⭐
+      <button onClick={onToggleImportant} className={`buddy-select-btn${memo.pinned ? " sel-on" : ""}`} title={memo.pinned ? "중요 해제" : "중요 표시"}>
+        <span className="bsb-icon">⭐</span>
+        <span className="bsb-label">{memo.pinned ? "중요" : "중요 아님"}</span>
+        <span className="bsb-arrow">▾</span>
       </button>
-      <button onClick={onToggleDone} className="buddy-done-button" title={memo.hearted ? "완료 취소" : "완료하기"}>
-        {memo.hearted ? "💚" : "🤍"}
+      <button onClick={onToggleDone} className={`buddy-select-btn${memo.hearted ? " sel-on" : ""}`} title={memo.hearted ? "완료 취소" : "완료하기"}>
+        <span className="bsb-icon">{memo.hearted ? "💚" : "🤍"}</span>
+        <span className="bsb-label">{memo.hearted ? "완료" : "미완료"}</span>
+        <span className="bsb-arrow">▾</span>
       </button>
       <button onClick={onDelete} className="buddy-delete-button" title="삭제">×</button>
     </div>
