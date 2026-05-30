@@ -301,7 +301,7 @@ export default function MemoWidget() {
                 className={`buddy-nav-button ${view === key ? "active" : ""}`}
                 title={MENUS[key].title}
               >
-                <span className="buddy-nav-icon">{MENUS[key].icon}</span>
+                <img src={`/icon-${key}.png`} alt={MENUS[key].label} className="buddy-nav-icon" />
                 <span className="buddy-nav-label">{MENUS[key].label}</span>
               </button>
             ))}

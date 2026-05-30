@@ -187,7 +187,7 @@ button { cursor: pointer; }
   border-bottom: 1px solid #8fac61;
   box-shadow: inset 1px 1px 0 rgba(255,255,255,.9);
 }
-.buddy-nav-icon { font-size: 28px; line-height: 1; filter: drop-shadow(1px 1px 0 #fff); }
+.buddy-nav-icon { width: 32px; height: 32px; object-fit: contain; display: block; filter: drop-shadow(1px 1px 0 #fff); }
 .buddy-nav-label { font-size: 11px; font-weight: 900; letter-spacing: -0.5px; }
 .buddy-sidebar-footer {
   margin-top: auto;
@@ -475,7 +475,7 @@ button { cursor: pointer; }
   .buddy-profilebar { height: 42px; flex-basis: 42px; }
   .buddy-sidebar { padding: 4px 3px; }
   .buddy-nav-button { min-height: 53px; }
-  .buddy-nav-icon { font-size: 24px; }
+  .buddy-nav-icon { width: 28px; height: 28px; }
   .buddy-nav-label { font-size: 10px; }
   .buddy-listbar { height: auto; min-height: 42px; align-items:flex-start; flex-direction:column; gap:5px; padding: 7px; }
   .buddy-counts { width:100%; overflow-x:auto; }
