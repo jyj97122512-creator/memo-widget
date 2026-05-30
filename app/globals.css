@@ -719,6 +719,27 @@ button { cursor: pointer; }
 .buddy-modal-version .mv-sub   { color: #5a7a3a; font-weight: 700; }
 .buddy-modal-version .mv-hr    { border: none; border-top: 1px dashed #c5d5a3; margin: 8px 0; }
 
+/* ── 확인 모달 ───────────────────────────────────────── */
+.buddy-confirm-body { display: flex; flex-direction: column; gap: 14px; }
+.buddy-confirm-msg  { font-size: 12px; line-height: 1.7; margin: 0; color: #1a1a1a; }
+.buddy-confirm-btns { display: flex; justify-content: flex-end; gap: 6px; }
+.buddy-confirm-ok {
+  padding: 3px 18px; font-size: 12px; font-weight: 700;
+  background: linear-gradient(180deg, #f1ffd7, #cfeaa3);
+  border-top: 1px solid #fff; border-left: 1px solid #fff;
+  border-right: 1px solid #8fac61; border-bottom: 1px solid #8fac61;
+  border-radius: 2px; color: #2d4a1a; cursor: pointer;
+}
+.buddy-confirm-ok:hover { background: linear-gradient(180deg, #e6f8bd, #b8e07a); }
+.buddy-confirm-cancel {
+  padding: 3px 14px; font-size: 12px; font-weight: 700;
+  background: #f4f4ec;
+  border-top: 1px solid #fff; border-left: 1px solid #fff;
+  border-right: 1px solid #929b7d; border-bottom: 1px solid #929b7d;
+  border-radius: 2px; color: #444; cursor: pointer;
+}
+.buddy-confirm-cancel:hover { background: #e8e8dc; }
+
 /* ── 오늘의 한마디 ──────────────────────────────────── */
 .buddy-quote-body { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 4px 0 2px; }
 .buddy-quote-text {

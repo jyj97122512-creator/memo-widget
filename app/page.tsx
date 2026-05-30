@@ -183,12 +183,32 @@ export default function MemoWidget() {
   const closeMenu = () => setOpenMenu(null);
   const act = (fn: () => void) => { closeMenu(); fn(); };
 
+  /* confirm() 대신 커스텀 모달 */
+  const withConfirm = (message: string, onOk: () => void) => {
+    setModal({
+      title: "확인",
+      body: (
+        <div className="buddy-confirm-body">
+          <p className="buddy-confirm-msg">{message}</p>
+          <div className="buddy-confirm-btns">
+            <button className="buddy-confirm-ok"   onClick={() => { setModal(null); onOk(); }}>확인</button>
+            <button className="buddy-confirm-cancel" onClick={() => setModal(null)}>취소</button>
+          </div>
+        </div>
+      ),
+    });
+  };
+
   const exportMemos = () => {
     const blob = new Blob([JSON.stringify(memos, null, 2)], { type: "application/json" });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
-    a.href = url; a.download = `buddymemo-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click(); URL.revokeObjectURL(url);
+    a.href = url;
+    a.download = `buddymemo-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,21 +228,23 @@ export default function MemoWidget() {
     e.target.value = "";
   };
 
-  const deleteAllDone = async () => {
-    if (!confirm("완료된 메모를 모두 삭제할까요?")) return;
-    const ids = memos.filter((m) => m.hearted).map((m) => m.id);
-    if (!ids.length) return;
-    setMemos((p) => p.filter((m) => !m.hearted));
-    try { await Promise.all(ids.map((id) => fetch(`/api/memos/${id}`, { method: "DELETE" }))); }
-    catch { fetchMemos(); }
+  const deleteAllDone = () => {
+    withConfirm("완료된 메모를 모두 삭제할까요?", async () => {
+      const ids = memos.filter((m) => m.hearted).map((m) => m.id);
+      if (!ids.length) return;
+      setMemos((p) => p.filter((m) => !m.hearted));
+      try { await Promise.all(ids.map((id) => fetch(`/api/memos/${id}`, { method: "DELETE" }))); }
+      catch { fetchMemos(); }
+    });
   };
 
-  const deleteAll = async () => {
-    if (!confirm("메모를 전부 삭제할까요? 이 작업은 되돌릴 수 없어요.")) return;
-    const ids = memos.map((m) => m.id);
-    setMemos([]);
-    try { await Promise.all(ids.map((id) => fetch(`/api/memos/${id}`, { method: "DELETE" }))); }
-    catch { fetchMemos(); }
+  const deleteAll = () => {
+    withConfirm("메모를 전부 삭제할까요? 이 작업은 되돌릴 수 없어요.", async () => {
+      const ids = memos.map((m) => m.id);
+      setMemos([]);
+      try { await Promise.all(ids.map((id) => fetch(`/api/memos/${id}`, { method: "DELETE" }))); }
+      catch { fetchMemos(); }
+    });
   };
 
   /* ── 집계 ────────────────────────────────────────── */
@@ -254,7 +276,7 @@ export default function MemoWidget() {
     { sep: true },
     { label: "메모 내보내기 (.json)", action: () => act(exportMemos) },
     { label: "메모 가져오기 (.json)", action: () => act(() => fileInputRef.current?.click()) },
-    { label: "새로고침",              action: () => act(fetchMemos) },
+    { label: "새로고침",              action: () => { closeMenu(); fetchMemos(); } },
   ];
 
   const LIST_ITEMS: MenuItem[] = [
