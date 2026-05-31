@@ -203,12 +203,15 @@ export default function MemoWidget() {
     const blob = new Blob([JSON.stringify(memos, null, 2)], { type: "application/json" });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
+    a.style.display = "none";
     a.href = url;
     a.download = `buddymemo-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1000);
   };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
