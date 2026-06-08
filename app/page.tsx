@@ -8,6 +8,7 @@ type Memo = {
   content: string;
   status: "진행중" | "완료" | "보류";
   important: boolean;
+  today?: boolean;
   category?: string;
   totalTime?: number;
   lastSessionTime?: number;
@@ -16,34 +17,14 @@ type Memo = {
   url: string;
 };
 
-type ViewMode = "all" | "active" | "completed" | "important";
-type MenuKey  = "file" | "list" | "tools" | "help";
+type ViewMode = "all" | "active" | "completed" | "important" | "today";
+type MenuKey  = "file" | "list" | "tools" | "settings" | "help";
 type ModalData = { title: string; body: React.ReactNode };
 type MenuItem  = { label: string; action: () => void } | { sep: true };
 type ThemeType = "buddy" | "win98";
 
-type PomodoroStatus = "running" | "paused" | "completed" | "break";
-type PomodoroConfig = {
-  memoId: string; memoContent: string;
-  focusMinutes: number; breakMinutes: number; withSound: boolean;
-};
-type PomodoroSession = PomodoroConfig & {
-  remainingSeconds: number; status: PomodoroStatus; cheerMessage: string;
-};
-
 type TimerStatus  = "idle" | "running" | "paused";
 type TimerSession = { memoId: string; memoContent: string; status: TimerStatus; };
-
-async function getRandomCheerMessage(): Promise<string> {
-  try {
-    const res = await fetch("/cheer-messages.json");
-    const data = await res.json();
-    const messages: { text: string }[] = data.messages;
-    return messages[Math.floor(Math.random() * messages.length)].text;
-  } catch {
-    return "오늘도 충분히 잘하고 있어요.";
-  }
-}
 
 function formatHMS(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -52,38 +33,13 @@ function formatHMS(seconds: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-function formatMinutes(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `${m}분`;
-  return `${h}시간 ${m}분`;
-}
-
-function playBeep(ctx: AudioContext) {
-  try {
-    ctx.resume().then(() => {
-      const tone = (freq: number, start: number, dur: number) => {
-        const osc = ctx.createOscillator(), gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.type = "sine"; osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0, ctx.currentTime + start);
-        gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-        osc.start(ctx.currentTime + start);
-        osc.stop(ctx.currentTime + start + dur);
-      };
-      tone(880, 0,    0.3);
-      tone(1108, 0.32, 0.3);
-      tone(1320, 0.64, 0.6);
-    });
-  } catch {}
-}
 
 const VIEWS: Record<ViewMode, { label: string; title: string; empty: string; status: string }> = {
-  all:       { label: "전체",  title: "전체보기",     empty: "이 목록에는 아직 메모가 없어요.",  status: "버디메모 전체 목록을 보고 있어요." },
-  active:    { label: "진행중", title: "진행중인 메모", empty: "진행중인 메모가 없어요.",           status: "아직 끝나지 않은 메모예요." },
-  completed: { label: "완료",  title: "완료된 메모",   empty: "완료된 메모가 없어요.",             status: "완료 처리한 메모예요." },
-  important: { label: "중요",  title: "중요한 메모",   empty: "중요 표시한 메모가 없어요.",        status: "별표로 표시한 중요한 메모예요." },
+  all:       { label: "전체",      title: "전체보기",       empty: "이 목록에는 아직 메모가 없어요.",   status: "버디메모 전체 목록을 보고 있어요." },
+  today:     { label: "오늘 할 일", title: "오늘 할 일",    empty: "오늘 할 일로 등록된 메모가 없어요.", status: "오늘 처리할 메모예요." },
+  important: { label: "중요",      title: "중요한 메모",    empty: "중요 표시한 메모가 없어요.",         status: "별표로 표시한 중요한 메모예요." },
+  active:    { label: "진행중",    title: "진행중인 메모",  empty: "진행중인 메모가 없어요.",             status: "아직 끝나지 않은 메모예요." },
+  completed: { label: "완료",      title: "완료된 메모",    empty: "완료된 메모가 없어요.",               status: "완료 처리한 메모예요." },
 };
 
 function timeLabel(dateString: string): string {
@@ -111,95 +67,6 @@ function Modal({ title, body, onClose }: ModalData & { onClose: () => void }) {
   );
 }
 
-function PomodoroSetup({ memos, onStart, onCancel }: {
-  memos: Memo[];
-  onStart: (cfg: PomodoroConfig) => void;
-  onCancel: () => void;
-}) {
-  const active = memos.filter((m) => m.status === "진행중");
-  const [selectedId, setSelectedId] = useState("");
-  const [focusMin,   setFocusMin]   = useState(25);
-  const [breakMin,   setBreakMin]   = useState(5);
-  const [withSound,  setWithSound]  = useState(false);
-  const selectedContent = active.find((m) => m.id === selectedId)?.title ?? "";
-
-  return (
-    <div className="buddy-modal-overlay" onMouseDown={onCancel}>
-      <div className="buddy-pomo-setup" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="buddy-modal-header">
-          <span>☘ 집중모드 설정</span>
-          <button className="buddy-modal-close" onClick={onCancel}>×</button>
-        </div>
-        <div className="buddy-pomo-body">
-
-          <div className="buddy-pomo-section">
-            <span className="buddy-pomo-label">오늘의 집중</span>
-            {active.length === 0
-              ? <p className="buddy-pomo-empty">진행중인 메모가 없어요.</p>
-              : (
-                <select
-                  className="buddy-pomo-select"
-                  value={selectedId}
-                  onChange={(e) => setSelectedId(e.target.value)}
-                >
-                  <option value="" disabled>할 일 선택하기</option>
-                  {active.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.title.length > 26 ? m.title.slice(0, 26) + "…" : m.title}
-                    </option>
-                  ))}
-                </select>
-              )
-            }
-          </div>
-
-          <div className="buddy-pomo-divider" />
-
-          <div className="buddy-pomo-time-row">
-            <div className="buddy-pomo-time-col">
-              <span className="buddy-pomo-label">집중 시간</span>
-              <input type="range" min={1} max={60} value={focusMin}
-                onChange={(e) => setFocusMin(Number(e.target.value))}
-                className="buddy-pomo-slider buddy-pomo-slider-full" />
-              <div className="buddy-pomo-val">{focusMin}분</div>
-            </div>
-            <div className="buddy-pomo-col-divider" />
-            <div className="buddy-pomo-time-col">
-              <span className="buddy-pomo-label">휴식 시간</span>
-              <input type="range" min={1} max={60} value={breakMin}
-                onChange={(e) => setBreakMin(Number(e.target.value))}
-                className="buddy-pomo-slider buddy-pomo-slider-full" />
-              <div className="buddy-pomo-val">{breakMin}분</div>
-            </div>
-          </div>
-
-          <div className="buddy-pomo-divider" />
-
-          <div className="buddy-pomo-section">
-            <label className="buddy-pomo-check-row">
-              <input type="checkbox" checked={withSound}
-                onChange={(e) => setWithSound(e.target.checked)}
-                className="buddy-pomo-chk" />
-              <span>종료 시 알림음</span>
-            </label>
-          </div>
-
-          <div className="buddy-pomo-divider" />
-
-          <div className="buddy-fp-controls">
-            <button
-              className="buddy-fp-ctrl-btn buddy-fp-ctrl-wide"
-              disabled={!selectedId}
-              onClick={() => onStart({ memoId: selectedId, memoContent: selectedContent, focusMinutes: focusMin, breakMinutes: breakMin, withSound })}
-            >시작</button>
-            <button className="buddy-fp-ctrl-btn buddy-fp-ctrl-wide" onClick={onCancel}>취소</button>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function TimerSetupModal({ memos, totalInvested, onStart, onCancel }: {
   memos: Memo[];
@@ -270,172 +137,6 @@ function TimerSetupModal({ memos, totalInvested, onStart, onCancel }: {
   );
 }
 
-function FocusSideSetup({ memos, onStart, onClose }: {
-  memos: Memo[];
-  onStart: (cfg: PomodoroConfig) => void;
-  onClose: () => void;
-}) {
-  const active = memos.filter((m) => m.status === "진행중");
-  const [selectedId, setSelectedId] = useState("");
-  const [focusMin,   setFocusMin]   = useState(25);
-  const [breakMin,   setBreakMin]   = useState(5);
-  const [withSound,  setWithSound]  = useState(false);
-  const selectedContent = active.find((m) => m.id === selectedId)?.title ?? "";
-
-  return (
-    <aside className="buddy-focus-panel">
-      <div className="buddy-fp-title" style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>☘ 뽀모도로</span>
-        <button className="buddy-fp-close-btn" onClick={onClose}>×</button>
-      </div>
-      <div className="buddy-fp-body">
-
-      <div className="buddy-fp-setup-section">
-        <span className="buddy-pomo-label">오늘의 집중</span>
-        {active.length === 0
-          ? <p className="buddy-pomo-empty">진행중인 메모가 없어요.</p>
-          : (
-            <select className="buddy-pomo-select" value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
-              <option value="" disabled>할 일 선택하기</option>
-              {active.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.title.length > 22 ? m.title.slice(0, 22) + "…" : m.title}
-                </option>
-              ))}
-            </select>
-          )
-        }
-      </div>
-
-      <div className="buddy-pomo-divider" />
-
-      <div className="buddy-pomo-time-row">
-        <div className="buddy-pomo-time-col">
-          <span className="buddy-pomo-label">집중 시간</span>
-          <input type="range" min={1} max={60} value={focusMin}
-            onChange={(e) => setFocusMin(Number(e.target.value))}
-            className="buddy-pomo-slider buddy-pomo-slider-full" />
-          <div className="buddy-pomo-val">{focusMin}분</div>
-        </div>
-        <div className="buddy-pomo-col-divider" />
-        <div className="buddy-pomo-time-col">
-          <span className="buddy-pomo-label">휴식 시간</span>
-          <input type="range" min={1} max={60} value={breakMin}
-            onChange={(e) => setBreakMin(Number(e.target.value))}
-            className="buddy-pomo-slider buddy-pomo-slider-full" />
-          <div className="buddy-pomo-val">{breakMin}분</div>
-        </div>
-      </div>
-
-      <div className="buddy-pomo-divider" />
-
-      <div className="buddy-fp-setup-section">
-        <label className="buddy-pomo-check-row">
-          <input type="checkbox" checked={withSound}
-            onChange={(e) => setWithSound(e.target.checked)}
-            className="buddy-pomo-chk" />
-          <span>종료 시 알림음</span>
-        </label>
-      </div>
-
-      <div className="buddy-pomo-divider" />
-
-      <div className="buddy-fp-controls">
-        <button
-          className="buddy-fp-ctrl-btn buddy-fp-ctrl-wide"
-          disabled={!selectedId}
-          onClick={() => onStart({ memoId: selectedId, memoContent: selectedContent, focusMinutes: focusMin, breakMinutes: breakMin, withSound })}
-        >시작</button>
-        <button className="buddy-fp-ctrl-btn buddy-fp-ctrl-wide" onClick={onClose}>취소</button>
-      </div>
-      </div>
-    </aside>
-  );
-}
-
-function FocusPanel({ session, currentCheer, onPause, onResume, onComplete, onStartBreak, onClose }: {
-  session: PomodoroSession;
-  currentCheer: string;
-  onPause: () => void; onResume: () => void;
-  onComplete: () => void; onStartBreak: () => void;
-  onClose: () => void;
-}) {
-  const totalSec    = session.status === "break" ? session.breakMinutes * 60 : session.focusMinutes * 60;
-  const progressPct = Math.min(100, Math.round(((totalSec - session.remainingSeconds) / totalSec) * 100));
-  const mins = String(Math.floor(session.remainingSeconds / 60)).padStart(2, "0");
-  const secs = String(session.remainingSeconds % 60).padStart(2, "0");
-  const isDone  = session.status === "completed";
-  const isBreak = session.status === "break";
-
-  return (
-    <aside className="buddy-focus-panel">
-      <div className="buddy-fp-title" style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>{isBreak ? "🌿 휴식 중" : "☘ 뽀모도로"}</span>
-        <button className="buddy-fp-close-btn" onClick={onClose}>×</button>
-      </div>
-      <div className="buddy-fp-body">
-
-      <div className="buddy-fp-divider" />
-
-      <div className="buddy-fp-section">
-        <div className="buddy-fp-section-label">현재 집중</div>
-        <div className="buddy-fp-memo">{session.memoContent}</div>
-      </div>
-
-      <div className="buddy-fp-divider" />
-
-      {!isDone ? (
-        <>
-          <div className="buddy-fp-section">
-            <div className="buddy-fp-section-label">{isBreak ? "남은 휴식 시간" : "남은 시간"}</div>
-            <div className="buddy-fp-timer">{mins}:{secs}</div>
-            <div className="buddy-fp-progress-wrap" style={{ marginTop: 5 }}>
-              <div className="buddy-fp-progress-fill" style={{ width: `${progressPct}%` }} />
-            </div>
-          </div>
-          <div className="buddy-fp-divider" />
-        </>
-      ) : (
-        <>
-          <div className="buddy-fp-section">
-            <div className="buddy-fp-done">🎉 {session.focusMinutes}분 집중 성공!</div>
-          </div>
-          <div className="buddy-fp-divider" />
-        </>
-      )}
-
-      <div className="buddy-fp-cheer-section">
-        <span className="buddy-fp-emoji">💬</span>
-        <p className="buddy-fp-cheer-text">{isDone ? "수고했어! 잠깐 쉬어도 돼 ☘" : currentCheer}</p>
-      </div>
-
-      <div className="buddy-fp-divider" />
-
-      <div className="buddy-fp-controls">
-        {session.status === "running" && (
-          <button className="buddy-fp-ctrl-btn" onClick={onPause} title="일시정지">⏸</button>
-        )}
-        {session.status === "paused" && (
-          <button className="buddy-fp-ctrl-btn" onClick={onResume} title="재개">▶</button>
-        )}
-        {(session.status === "running" || session.status === "paused") && (
-          <button className="buddy-fp-ctrl-btn" onClick={onComplete} title="종료">■</button>
-        )}
-        {isDone && (
-          <>
-            <button className="buddy-fp-ctrl-btn" onClick={onStartBreak} title="휴식 시작">🌿</button>
-            <button className="buddy-fp-ctrl-btn" onClick={onComplete} title="닫기">■</button>
-          </>
-        )}
-        {isBreak && (
-          <button className="buddy-fp-ctrl-btn" onClick={onComplete} title="휴식 종료">■</button>
-        )}
-      </div>
-
-      </div>
-    </aside>
-  );
-}
 
 function TimerPanel({ memos, session, elapsed, totalInvested, currentCheer, onStart, onPause, onResume, onStop, onClose, onResetInvested, onResetElapsed }: {
   memos: Memo[];
@@ -586,13 +287,34 @@ function TimerPanel({ memos, session, elapsed, totalInvested, currentCheer, onSt
   );
 }
 
-function MemoCard({ memo, onToggleDone, onToggleImportant, onDelete, onDoubleClick }: {
+const BUDDY_NAV: Record<string, string> = {
+  today:     "/images/today.png",
+  important: "/images/important2.png",
+  active:    "/images/active2.png",
+};
+const W98_NAV: Record<string, string> = {
+  all:       "/images/win98/win98-memo-folder.png",
+  active:    "/images/win98/win98-memo-new.png",
+  today:     "/images/win98/win98-memo-today.png",
+  completed: "/images/win98/win98-memo-done.png",
+  important: "/images/win98/win98-memo-star.png",
+};
+function navIcon(key: string, theme: ThemeType): string {
+  if (theme === "win98" && W98_NAV[key]) return W98_NAV[key];
+  if (BUDDY_NAV[key]) return BUDDY_NAV[key];
+  return `/icon-${key}.png`;
+}
+
+function MemoCard({ memo, onToggleDone, onToggleImportant, onToggleToday, onDelete, onDoubleClick, theme }: {
   memo: Memo;
   onToggleDone: () => void;
   onToggleImportant: () => void;
+  onToggleToday: () => void;
   onDelete: () => void;
   onDoubleClick: () => void;
+  theme: ThemeType;
 }) {
+  const w98 = theme === "win98";
   return (
     <div className={`buddy-memo-row${memo.status === "완료" ? " done" : ""}`}>
       <button onClick={onToggleDone} className="buddy-check" title={memo.status === "완료" ? "완료 취소" : "완료하기"}>
@@ -603,22 +325,78 @@ function MemoCard({ memo, onToggleDone, onToggleImportant, onDelete, onDoubleCli
         <p className="buddy-memo-time">{timeLabel(memo.createdAt)}</p>
       </div>
       <button onClick={onToggleImportant} className="buddy-img-btn" title={memo.important ? "중요 해제" : "중요 표시"}>
-        <img src="/images/important-after.png" alt="중요" className={memo.important ? "" : "img-off"} />
+        <img src={w98 ? "/images/win98/win98-memo-star.png" : "/images/important-after.png"} alt="중요" className={memo.important ? "" : "img-off"} />
+      </button>
+      <button onClick={onToggleToday} className="buddy-img-btn" title={memo.today ? "오늘 할 일 해제" : "오늘 할 일 등록"}>
+        <img src={w98 ? "/images/win98/win98-memo-today.png" : "/images/today.png"} alt="오늘" className={memo.today ? "" : "img-off"} />
       </button>
       <button onClick={onToggleDone} className="buddy-img-btn" title={memo.status === "완료" ? "완료 취소" : "완료하기"}>
-        <img src="/images/completed-on.png" alt="완료" className={memo.status === "완료" ? "" : "img-off"} />
+        <img src={w98 ? "/images/win98/win98-memo-done.png" : "/images/completed-on.png"} alt="완료" className={memo.status === "완료" ? "" : "img-off"} />
       </button>
       <a href={memo.url} target="_blank" rel="noopener noreferrer" className="buddy-img-btn" title="Notion에서 열기">
-        <img src="/images/move-to-memo.png" alt="이동" />
+        <img src={w98 ? "/images/win98/win98-memo-folder.png" : "/images/move-to-memo.png"} alt="이동" />
       </a>
       <button onClick={onDelete} className="buddy-img-btn buddy-del-btn" title="삭제">
-        <img src="/images/delete-default.png" alt="삭제" className="del-default" />
-        <img src="/images/delete-hover.png" alt="삭제" className="del-hover" />
+        <img src={w98 ? "/images/win98/win98-memo-delete.png" : "/images/delete-default.png"} alt="삭제" className="del-default" />
+        <img src={w98 ? "/images/win98/win98-memo-delete.png" : "/images/delete-hover.png"} alt="삭제" className="del-hover" />
       </button>
     </div>
   );
 }
 
+function ThemeModal({ current, onSelect, onClose }: {
+  current: ThemeType;
+  onSelect: (t: ThemeType) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="buddy-modal-overlay" onMouseDown={onClose}>
+      <div className="buddy-modal" onMouseDown={(e) => e.stopPropagation()} style={{ minWidth: 240 }}>
+        <div className="buddy-modal-header">
+          <span>🎨 테마 설정</span>
+          <button className="buddy-modal-close" onClick={onClose}>×</button>
+        </div>
+        <div className="buddy-modal-body" style={{ padding: "16px 20px", display: "flex", flexDirection: "row", gap: 20, justifyContent: "center" }}>
+          {/* 버디버디 버튼 */}
+          <button
+            onClick={() => { onSelect("buddy"); onClose(); }}
+            style={{
+              background: "none", border: "none", padding: 0, cursor: "pointer",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+              opacity: current === "buddy" ? 1 : 0.4,
+              transition: "opacity 0.15s",
+            }}
+          >
+            <div style={{ height: 36, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img src="/images/titlebar-main.png" alt="버디버디" style={{ height: 32, width: "auto" }} />
+            </div>
+            <span style={{ fontFamily: "inherit", fontSize: 11, fontWeight: 900, color: "#526733" }}>
+              {current === "buddy" ? "✓ " : ""}버디버디
+            </span>
+          </button>
+
+          {/* Win98 버튼 */}
+          <button
+            onClick={() => { onSelect("win98"); onClose(); }}
+            style={{
+              background: "none", border: "none", padding: 0, cursor: "pointer",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+              opacity: current === "win98" ? 1 : 0.4,
+              transition: "opacity 0.15s",
+            }}
+          >
+            <div style={{ height: 36, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img src="/images/win98/win98-memo-theme.png" alt="Win98" style={{ height: 36, width: "auto", imageRendering: "pixelated" }} />
+            </div>
+            <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, fontWeight: 700, color: "#444" }}>
+              {current === "win98" ? "✓ " : ""}Win98
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function MemoWidget() {
   const [memos,       setMemos]       = useState<Memo[]>([]);
@@ -628,7 +406,6 @@ export default function MemoWidget() {
   const [error,       setError]       = useState<string | null>(null);
   const [view,        setView]        = useState<ViewMode>("all");
   const [openMenu,    setOpenMenu]    = useState<MenuKey | null>(null);
-  const [focusMode,   setFocusMode]   = useState(false);
   const [showSearch,  setShowSearch]  = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [modal,       setModal]       = useState<ModalData | null>(null);
@@ -638,17 +415,16 @@ export default function MemoWidget() {
   const [detailTitle,    setDetailTitle]    = useState("");
   const [detailContent,  setDetailContent]  = useState("");
   const [detailImportant, setDetailImportant] = useState(false);
+  const [detailToday,    setDetailToday]     = useState(false);
+  const [detailCategory, setDetailCategory] = useState("");
+  const [newCategoryMode, setNewCategoryMode] = useState(false);
+  const [newCategoryInput, setNewCategoryInput] = useState("");
 
   // 상세 보기 팝업
   const [selectedMemo, setSelectedMemo] = useState<Memo | null>(null);
 
-  const [customizeOpen,   setCustomizeOpen]   = useState(false);
-  const customizeRef = useRef<HTMLDivElement>(null);
 
-  const [pomodoroOpen,    setPomodoroOpen]    = useState(false);
   const [timerSetupOpen,  setTimerSetupOpen]  = useState(false);
-  const [pomodoroSession, setPomodoroSession] = useState<PomodoroSession | null>(null);
-  const [splitFocus,      setSplitFocus]      = useState(false);
   const [timerMode,       setTimerMode]       = useState(false);
   const [timerSession,    setTimerSession]    = useState<TimerSession | null>(null);
   const [timerElapsed,    setTimerElapsed]    = useState(0);
@@ -657,6 +433,7 @@ export default function MemoWidget() {
 
   const [theme,            setThemeState]       = useState<ThemeType>("buddy");
   const setTheme = (t: ThemeType) => { setThemeState(t); try { localStorage.setItem("buddy-theme", t); } catch {} };
+  const [themeOpen,        setThemeOpen]        = useState(false);
   const [notionReady,      setNotionReady]      = useState(false);
   const [needsSetup,       setNeedsSetup]       = useState(false);
   const [showPanelOnMobile, setShowPanelOnMobile] = useState(false);
@@ -703,11 +480,10 @@ export default function MemoWidget() {
     }
   };
 
-  const quickMemoRef  = useRef<HTMLInputElement>(null);
+  const quickMemoRef  = useRef<HTMLTextAreaElement>(null);
   const menubarRef    = useRef<HTMLElement>(null);
   const fileInputRef  = useRef<HTMLInputElement>(null);
   const searchRef     = useRef<HTMLInputElement>(null);
-  const audioCtxRef       = useRef<AudioContext | null>(null);
   const timerElapsedRef   = useRef(0);
   const timerStartRef     = useRef<number | null>(null);
   const timerAccumRef     = useRef(0);
@@ -718,8 +494,6 @@ export default function MemoWidget() {
     const handler = (e: MouseEvent) => {
       if (menubarRef.current && !menubarRef.current.contains(e.target as Node))
         setOpenMenu(null);
-      if (customizeRef.current && !customizeRef.current.contains(e.target as Node))
-        setCustomizeOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -754,22 +528,6 @@ export default function MemoWidget() {
     if (notionReady && !needsSetup) fetchMemos();
   }, [notionReady, needsSetup, fetchMemos]);
 
-  /* 뽀모도로 타이머 */
-  useEffect(() => {
-    if (!pomodoroSession || (pomodoroSession.status !== "running" && pomodoroSession.status !== "break")) return;
-    const id = setInterval(() => {
-      setPomodoroSession((prev) => {
-        if (!prev) return null;
-        if (prev.remainingSeconds <= 1) {
-          if (prev.withSound && audioCtxRef.current) playBeep(audioCtxRef.current);
-          if (prev.status === "break") return null;
-          return { ...prev, status: "completed", remainingSeconds: 0 };
-        }
-        return { ...prev, remainingSeconds: prev.remainingSeconds - 1 };
-      });
-    }, 1000);
-    return () => clearInterval(id);
-  }, [pomodoroSession?.status]);
 
 /* 마운트: localStorage 투자 시간 + 응원 메시지 로드 + 타이머 세션 복원 */
   useEffect(() => {
@@ -800,7 +558,6 @@ export default function MemoWidget() {
         setTimerElapsed(accum);
         setTimerSession({ memoId: s.memoId, memoContent: s.memoContent, status: s.status });
         setTimerMode(true);
-        setSplitFocus(true);
         setView("active");
       }
     } catch {}
@@ -864,20 +621,22 @@ export default function MemoWidget() {
 
   /* 응원 문구 30초 로테이션 */
   useEffect(() => {
-    const isRunning = pomodoroSession?.status === "running" || timerSession?.status === "running";
+    const isRunning = timerSession?.status === "running";
     if (!isRunning) return;
     const id = setInterval(() => {
       if (allCheersRef.current.length > 0)
         setCheerIdx(prev => (prev + 1) % allCheersRef.current.length);
     }, 30000);
     return () => clearInterval(id);
-  }, [pomodoroSession?.status, timerSession?.status]);
+  }, [timerSession?.status]);
 
   /* 메모 생성 */
   const createMemo = async (data: {
     title: string;
     content?: string;
     important?: boolean;
+    today?: boolean;
+    category?: string;
   }) => {
     if (!data.title.trim() || sending) return;
     setSending(true);
@@ -919,6 +678,10 @@ export default function MemoWidget() {
     patchMemo(id, (m) => ({ ...m, important: !curImportant }), { important: !curImportant });
   };
 
+  const toggleToday = (id: string, curToday: boolean) => {
+    patchMemo(id, (m) => ({ ...m, today: !curToday }), { today: !curToday });
+  };
+
   const setMemoStatus = (id: string, newStatus: "진행중" | "완료" | "보류") => {
     patchMemo(id, (m) => ({ ...m, status: newStatus }), { status: newStatus });
   };
@@ -951,24 +714,7 @@ export default function MemoWidget() {
     });
   };
 
-  const handlePomodoroStart = async (cfg: PomodoroConfig) => {
-    if (cfg.withSound) {
-      try {
-        const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-        audioCtxRef.current = new Ctx();
-        await audioCtxRef.current.resume();
-      } catch {}
-    }
-    setPomodoroOpen(false);
-    setSplitFocus(true); setFocusMode(false); setView("active"); setShowPanelOnMobile(true);
-    const msgs = allCheersRef.current;
-    const idx = msgs.length > 0 ? Math.floor(Math.random() * msgs.length) : 0;
-    setCheerIdx(idx);
-    const cheerMessage = msgs.length > 0 ? msgs[idx] : await getRandomCheerMessage();
-    setPomodoroSession({ ...cfg, remainingSeconds: cfg.focusMinutes * 60, status: "running", cheerMessage });
-  };
-
-  const saveInvestedTime = (memoId: string, seconds: number) => {
+const saveInvestedTime = (memoId: string, seconds: number) => {
     if (!memoId || seconds <= 0) return;
     const newTotal = (totalInvested[memoId] ?? 0) + seconds;
     setTotalInvested(prev => {
@@ -991,11 +737,6 @@ export default function MemoWidget() {
     ));
   };
 
-  const pausePomo    = () => setPomodoroSession((p) => p ? { ...p, status: "paused"  } : null);
-  const resumePomo   = () => setPomodoroSession((p) => p ? { ...p, status: "running" } : null);
-  const completePomo = () => { setPomodoroSession(null); };
-  const activateFocusMode   = () => { setSplitFocus(true); setFocusMode(false); setView("active"); setShowPanelOnMobile(true); };
-  const deactivateFocusMode = () => { setSplitFocus(false); setPomodoroSession(null); setShowPanelOnMobile(false); };
 
   const getTimerElapsed = () => {
     if (timerStartRef.current !== null)
@@ -1003,17 +744,6 @@ export default function MemoWidget() {
     return timerAccumRef.current;
   };
 
-  const isFocusWindow = splitFocus && timerMode;
-  const activateFocusWindow = () => {
-    setSplitFocus(true); setTimerMode(true); setFocusMode(false); setView("active"); setShowPanelOnMobile(true);
-  };
-  const deactivateFocusWindow = () => {
-    setSplitFocus(false); setPomodoroSession(null);
-    if (timerSession) saveInvestedTime(timerSession.memoId, getTimerElapsed());
-    setTimerElapsed(0); timerElapsedRef.current = 0; timerAccumRef.current = 0; timerStartRef.current = null;
-    setTimerSession(null); setTimerMode(false); setShowPanelOnMobile(false);
-    try { localStorage.removeItem("buddy-timer-session"); } catch {}
-  };
 
   const activateTimerMode   = () => { setTimerMode(true); };
   const deactivateTimerMode = () => {
@@ -1086,10 +816,6 @@ export default function MemoWidget() {
     setTimerElapsed(0);
   };
 
-  const startBreak   = () => setPomodoroSession((p) => p ? {
-    ...p, status: "break", remainingSeconds: p.breakMinutes * 60,
-    cheerMessage: "잘 쉬고 다시 시작해봐요 🌿",
-  } : null);
 
   const exportMemos = () => {
     const blob = new Blob([JSON.stringify(memos, null, 2)], { type: "application/json" });
@@ -1156,13 +882,14 @@ export default function MemoWidget() {
   const completedCount = memos.filter((m) => m.status === "완료").length;
   const importantCount = memos.filter((m) => m.important).length;
 
-  const effectiveView = (focusMode || splitFocus) ? "active" : view;
+  const effectiveView = view;
 
   const displayMemos = memos.filter((m) => {
     const inView =
       effectiveView === "active"    ? m.status === "진행중" :
       effectiveView === "completed" ? m.status === "완료" :
-      effectiveView === "important" ? m.important : true;
+      effectiveView === "important" ? m.important :
+      effectiveView === "today"     ? m.today === true : true;
     const inSearch = !showSearch || !searchQuery ||
       m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.content.toLowerCase().includes(searchQuery.toLowerCase());
@@ -1172,7 +899,7 @@ export default function MemoWidget() {
   const currentView  = VIEWS[effectiveView];
   const currentCheer = allCheersRef.current.length > 0
     ? allCheersRef.current[cheerIdx % allCheersRef.current.length]
-    : (pomodoroSession?.cheerMessage ?? "오늘도 충분히 잘하고 있어요.");
+    : "오늘도 충분히 잘하고 있어요.";
 
   /* ── 메뉴 정의 ───────────────────────────────────────── */
   const FILE_ITEMS: MenuItem[] = [
@@ -1193,19 +920,57 @@ export default function MemoWidget() {
   ];
 
   const LIST_ITEMS: MenuItem[] = [
-    { label: "전체보기",     action: () => act(() => { setFocusMode(false); setView("all"); }) },
-    { label: "진행중인 메모", action: () => act(() => { setFocusMode(false); setView("active"); }) },
-    { label: "완료된 메모",  action: () => act(() => { setFocusMode(false); setView("completed"); }) },
-    { label: "중요한 메모",  action: () => act(() => { setFocusMode(false); setView("important"); }) },
+    { label: "전체보기",     action: () => act(() => setView("all")) },
+    { label: "진행중인 메모", action: () => act(() => setView("active")) },
+    { label: "완료된 메모",  action: () => act(() => setView("completed")) },
+    { label: "중요한 메모",  action: () => act(() => setView("important")) },
   ];
 
   const TOOLS_ITEMS: MenuItem[] = [
-    { label: isFocusWindow ? "집중 모드 해제" : "집중 모드", action: () => act(() => isFocusWindow ? deactivateFocusWindow() : activateFocusWindow()) },
-    { sep: true },
-    { label: "뽀모도로", action: () => act(() => setPomodoroOpen(true)) },
     { label: "타이머",   action: () => act(() => setTimerSetupOpen(true)) },
     { sep: true },
     { label: "메모 검색", action: () => act(() => { setShowSearch((p) => !p); setTimeout(() => searchRef.current?.focus(), 50); }) },
+  ];
+
+  const SETTINGS_ITEMS: MenuItem[] = [
+    { label: "테마 변경", action: () => act(() => setThemeOpen(true)) },
+    { sep: true },
+    { label: "초기화", action: () => act(() => setModal({
+      title: "⚠️ Notion 연동을 초기화할까요?",
+      body: (
+        <div className="buddy-confirm-body">
+          <p className="buddy-confirm-msg">
+            초기화하면 저장된 API 토큰이 삭제되며,<br />
+            다시 설정을 진행해야 합니다.<br />
+            메모 데이터는 Notion에 그대로 유지됩니다.
+          </p>
+          <div className="buddy-confirm-btns">
+            <button className="buddy-confirm-ok" onClick={() => {
+              setModal(null);
+              try {
+                localStorage.removeItem("buddy-notion-token");
+                localStorage.removeItem("buddy-notion-page-id");
+                localStorage.removeItem("buddy-notion-db-id");
+                localStorage.removeItem("buddy-invested");
+                localStorage.removeItem("buddy-timer-session");
+                localStorage.removeItem("buddy-theme");
+              } catch {}
+              setThemeState("buddy");
+              setTotalInvested({});
+              setTimerSession(null);
+              setTimerMode(false);
+              setTimerElapsed(0);
+              timerAccumRef.current = 0;
+              timerStartRef.current = null;
+              timerElapsedRef.current = 0;
+              setMemos([]);
+              setNeedsSetup(true);
+            }}>확인</button>
+            <button className="buddy-confirm-cancel" onClick={() => setModal(null)}>취소</button>
+          </div>
+        </div>
+      ),
+    })) },
   ];
 
   const HELP_ITEMS: MenuItem[] = [
@@ -1221,45 +986,41 @@ export default function MemoWidget() {
         </ul>
       ),
     })) },
-    { label: "단축키 안내", action: () => act(() => setModal({
-      title: "단축키 안내",
-      body: (
-        <table className="buddy-modal-table">
-          <tbody>
-            <tr><td>Enter</td><td>메모 저장</td></tr>
-          </tbody>
-        </table>
-      ),
-    })) },
     { sep: true },
-    { label: "버전 정보", action: () => act(() => setModal({
-      title: "버전 정보",
+    { label: "업데이트 내역", action: () => act(() => setModal({
+      title: "업데이트 내역",
       body: (
         <div className="buddy-modal-version">
           <p className="mv-title">BuddyMemo 7.0</p>
           <p className="mv-sub">Retro Edition</p>
           <hr className="mv-hr" />
-          <p>Inspired by BuddyBuddy</p>
-          <p>Built with Notion Widget</p>
+          <ul className="buddy-modal-list" style={{ marginTop: 0 }}>
+            <li>메뉴바 구조 개편 (설정 메뉴 추가)</li>
+            <li>타이머 기능 개선</li>
+            <li>Win98 / 버디버디 듀얼 테마</li>
+            <li>분류(select) 속성 지원</li>
+            <li>검색 기능 추가</li>
+          </ul>
         </div>
       ),
     })) },
-    { label: "개발자 정보", action: () => act(() => setModal({
-      title: "개발자 정보",
+    { label: "문의하기", action: () => act(() => setModal({
+      title: "문의하기",
       body: (
         <div className="buddy-modal-version">
-          <p>Built with Next.js + Notion API</p>
-          <p>Deployed on Vercel</p>
+          <p style={{ marginBottom: 8 }}>버그 신고 및 기능 제안은 아래로 연락해 주세요.</p>
+          <p>📧 00gungum00i@gmail.com</p>
         </div>
       ),
     })) },
   ];
 
   const MENU_CONFIG: { key: MenuKey; label: string; items: MenuItem[] }[] = [
-    { key: "file",  label: "파일(F)",   items: FILE_ITEMS  },
-    { key: "list",  label: "목록(L)",   items: LIST_ITEMS  },
-    { key: "tools", label: "도구(T)",   items: TOOLS_ITEMS },
-    { key: "help",  label: "도움말(H)", items: HELP_ITEMS  },
+    { key: "file",     label: "파일(F)",   items: FILE_ITEMS     },
+    { key: "list",     label: "목록(L)",   items: LIST_ITEMS     },
+    { key: "tools",    label: "도구(T)",   items: TOOLS_ITEMS    },
+    { key: "settings", label: "설정(S)",   items: SETTINGS_ITEMS },
+    { key: "help",     label: "도움말(H)", items: HELP_ITEMS     },
   ];
 
   /* ── 초기화 전 로딩 ──────────────────────────────────── */
@@ -1333,7 +1094,7 @@ export default function MemoWidget() {
         {/* 타이틀바 */}
         <header className="buddy-titlebar">
           <div className="buddy-title-left">
-            <span className="buddy-logo">🐻</span>
+            <img src={theme === "win98" ? "/images/win98/win98-memo-theme.png" : "/images/titlebar-main.png"} alt="" className="buddy-titlebar-mail" aria-hidden="true" />
             <span className="buddy-title-text">BUDDYMEMO&nbsp;&nbsp;7.0</span>
           </div>
           <div className="buddy-window-buttons" aria-hidden="true">
@@ -1366,30 +1127,32 @@ export default function MemoWidget() {
           ))}
         </nav>
 
-        {/* 집중 모드 배너 */}
-        {(focusMode || splitFocus) && (
-          <div className="buddy-focus-banner">
-            {pomodoroSession
-              ? `☘️ 집중 모드 — ${pomodoroSession.memoContent.length > 28 ? pomodoroSession.memoContent.slice(0, 28) + "…" : pomodoroSession.memoContent}`
-              : "☘️ 집중 모드 — 진행중 메모만 표시합니다."
-            }
-            {focusMode  && <button className="buddy-focus-off" onClick={() => setFocusMode(false)}>해제</button>}
-            {splitFocus && <button className="buddy-focus-off" onClick={deactivateFocusMode}>해제</button>}
-          </div>
-        )}
 
         {/* 프로필바 */}
         <section className="buddy-profilebar">
           <div className="buddy-profile-left">
             <img src="/icon-buddy-symbol.png" alt="버디" className="buddy-face" />
-            <span className="buddy-profile-name">버디버디</span>
+            <span className="buddy-profile-name">버디메모</span>
             <span className="buddy-profile-state">&#123;접속&#125;</span>
           </div>
           <div className="buddy-toolbar">
             <button
               className="buddy-toolbar-item"
-              onClick={async () => {
-                const quote = await getRandomCheerMessage();
+              onClick={() => setView("all")}
+            >
+              <img src={theme === "win98" ? "/images/win98/win98-memo-home.png" : "/icon-home.png"} alt="홈" className="buddy-toolbar-icon" />홈
+            </button>
+            <button
+              className="buddy-toolbar-item"
+              onClick={() => { setShowSearch((p) => !p); setTimeout(() => searchRef.current?.focus(), 50); }}
+            >
+              <img src="/images/search.png" alt="검색" className="buddy-toolbar-icon" style={{ width: 15, height: 15 }} />검색
+            </button>
+            <button
+              className="buddy-toolbar-item"
+              onClick={() => {
+                const msgs = allCheersRef.current;
+                const quote = msgs.length > 0 ? msgs[Math.floor(Math.random() * msgs.length)] : "오늘도 충분히 잘하고 있어요.";
                 setModal({
                   title: "✨ 오늘의 응원",
                   body: (
@@ -1401,45 +1164,8 @@ export default function MemoWidget() {
                 });
               }}
             >
-              <img src="/icon-mail-plus.png" alt="오늘의 한마디" className="buddy-toolbar-icon" />오늘의 한마디
+              <img src={theme === "win98" ? "/images/win98/win98-memo-message.png" : "/icon-mail-plus.png"} alt="오늘의 한마디" className="buddy-toolbar-icon" />오늘의 한마디
             </button>
-            <button
-              className="buddy-toolbar-item"
-              onClick={() => { setFocusMode(false); setView("all"); }}
-            >
-              <img src="/icon-home.png" alt="홈" className="buddy-toolbar-icon" />홈
-            </button>
-            <div className="buddy-toolbar-dropdown-wrap" ref={customizeRef}>
-              <button
-                className={`buddy-toolbar-item${customizeOpen ? " open" : ""}`}
-                onClick={() => setCustomizeOpen((p) => !p)}
-              >
-                <img src="/icon-itemshop.png" alt="꾸미기" className="buddy-toolbar-icon" />꾸미기
-              </button>
-              {customizeOpen && (
-                <div className="buddy-toolbar-dropdown">
-                  <button
-                    className="buddy-toolbar-dropdown-item"
-                    onClick={() => { setTheme("buddy"); setCustomizeOpen(false); }}
-                  >{theme === "buddy" ? "✓ " : ""}🐻 버디버디</button>
-                  <button
-                    className="buddy-toolbar-dropdown-item"
-                    onClick={() => { setTheme("win98"); setCustomizeOpen(false); }}
-                  >{theme === "win98" ? "✓ " : ""}🖥 Win98</button>
-                  <div className="buddy-dropdown-sep" />
-                  <button
-                    className="buddy-toolbar-dropdown-item"
-                    onClick={() => {
-                      setCustomizeOpen(false);
-                      withConfirm("Notion 연동을 초기화할까요? 다시 API 토큰을 입력해야 합니다.", () => {
-                        localStorage.removeItem("buddy-notion-token");
-                        setNeedsSetup(true);
-                      });
-                    }}
-                  >초기화</button>
-                </div>
-              )}
-            </div>
           </div>
         </section>
 
@@ -1451,36 +1177,33 @@ export default function MemoWidget() {
             {(Object.keys(VIEWS) as ViewMode[]).map((key) => (
               <button
                 key={key}
-                onClick={() => { setFocusMode(false); setView(key); }}
-                className={`buddy-nav-button${effectiveView === key && !focusMode ? " active" : ""}`}
+                onClick={() => setView(key)}
+                className={`buddy-nav-button${effectiveView === key ? " active" : ""}`}
                 title={VIEWS[key].title}
               >
-                <img src={`/icon-${key}.png`} alt={VIEWS[key].label} className="buddy-nav-icon" />
+                <img src={navIcon(key, theme)} alt={VIEWS[key].label} className="buddy-nav-icon" style={key === "today" ? { width: theme === "win98" ? 27 : 29, height: theme === "win98" ? 27 : 29 } : undefined} />
               </button>
             ))}
             <div className="buddy-sidebar-footer">
-              <div className="buddy-mini-stickers">
-                <img src="/icon-service-star.png" alt="" className="buddy-mini-sticker" />
-              </div>
-              <div>버디메모<br />7.0</div>
+              <div className="buddy-sidebar-brand">BUDDY<br />MEMO</div>
             </div>
           </aside>
 
           {/* 메인 */}
-          <main className={`buddy-main${(splitFocus || pomodoroSession || timerMode) ? " buddy-main--split" : ""}${(splitFocus || pomodoroSession || timerMode) && showPanelOnMobile ? " mobile-panel" : ""}`}>
+          <main className={`buddy-main${timerMode ? " buddy-main--split" : ""}${timerMode && showPanelOnMobile ? " mobile-panel" : ""}`}>
             <div className="buddy-memo-area">
 
             {/* 모바일: 활성 패널로 전환 버튼 */}
-            {(splitFocus || pomodoroSession || timerMode) && (
+            {timerMode && (
               <button className="buddy-mobile-to-panel" onClick={() => setShowPanelOnMobile(true)}>
-                {timerMode ? "⏱ 타이머 실행 중" : "🍅 집중 타이머 실행 중"}&nbsp;&nbsp;→ 보러가기
+                ⏱ 타이머 실행 중&nbsp;&nbsp;→ 보러가기
               </button>
             )}
 
             {/* 리스트바 */}
             <div className="buddy-listbar">
               <div className="buddy-list-title">
-                <img src={`/icon-${effectiveView}.png`} alt={currentView.label} className="buddy-list-icon" />
+                <img src={navIcon(effectiveView, theme)} alt={currentView.label} className="buddy-list-icon" />
                 <span className="buddy-list-text">{currentView.title}</span>
               </div>
               <div className="buddy-counts">
@@ -1512,13 +1235,16 @@ export default function MemoWidget() {
               )}
               {!loading && displayMemos.length === 0 && (
                 <div className="buddy-empty">
-                  <img src={`/icon-${effectiveView}.png`} alt={currentView.label} className="buddy-empty-icon" />
+                  <img src={navIcon(effectiveView, theme)} alt={currentView.label} className="buddy-empty-icon" />
                   <span>{currentView.empty}</span>
                 </div>
               )}
               {loading && displayMemos.length === 0 && (
                 <div className="buddy-empty">
-                  <span style={{ fontSize: 32 }}>🍀</span>
+                  {theme === "win98"
+                    ? <img src="/images/win98/win98-memo-hourglass.png" alt="로딩" style={{ width: 32, height: 32, imageRendering: "pixelated" }} />
+                    : <span style={{ fontSize: 32 }}>🍀</span>
+                  }
                   <span>메모를 불러오는 중...</span>
                 </div>
               )}
@@ -1526,8 +1252,10 @@ export default function MemoWidget() {
                 <MemoCard
                   key={memo.id}
                   memo={memo}
+                  theme={theme}
                   onToggleDone={() => toggleDone(memo.id, memo.status)}
                   onToggleImportant={() => toggleImportant(memo.id, memo.important)}
+                  onToggleToday={() => toggleToday(memo.id, memo.today ?? false)}
                   onDelete={() => withConfirm("메모를 삭제하시겠습니까?", () => deleteMemo(memo.id))}
                   onDoubleClick={() => setSelectedMemo(memo)}
                 />
@@ -1536,18 +1264,28 @@ export default function MemoWidget() {
 
             {/* 입력바 */}
             <footer className="memo-input-bar">
-              <input
+              <textarea
                 ref={quickMemoRef}
                 value={quickMemo}
-                onChange={(e) => setQuickMemo(e.target.value)}
+                rows={1}
+                onChange={(e) => {
+                  setQuickMemo(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = Math.min(e.target.scrollHeight, 80) + "px";
+                }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey && quickMemo.trim()) {
+                  if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
-                    createMemo({ title: quickMemo });
-                    setQuickMemo("");
+                    if (quickMemo.trim()) {
+                      createMemo({ title: quickMemo });
+                      setQuickMemo("");
+                      if (quickMemoRef.current) {
+                        quickMemoRef.current.style.height = "auto";
+                      }
+                    }
                   }
                 }}
-                placeholder="메모를 입력하세요... (Enter 전송)"
+                placeholder="메모를 입력하세요... (Enter 전송 · Shift+Enter 줄바꿈)"
               />
               <button
                 className="win98-button"
@@ -1558,7 +1296,9 @@ export default function MemoWidget() {
                   setQuickMemo("");
                 }}
               >
-                📝 등록
+                {theme === "win98"
+                  ? <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}><img src="/images/win98/win98-memo-save.png" alt="" style={{ height: 13, width: "auto" }} />등록</span>
+                  : "📝 등록"}
               </button>
               <button
                 className="win98-button"
@@ -1569,42 +1309,25 @@ export default function MemoWidget() {
             </footer>
             </div>{/* buddy-memo-area */}
 
-            {(splitFocus || pomodoroSession || timerMode) && (
+            {timerMode && (
               <div className="buddy-right-panels">
                 <button className="buddy-mobile-back" onClick={() => setShowPanelOnMobile(false)}>
                   ← 메모 목록
                 </button>
-                {(splitFocus || pomodoroSession) && (
-                  splitFocus && !pomodoroSession
-                    ? <FocusSideSetup
-                        memos={memos}
-                        onStart={handlePomodoroStart}
-                        onClose={deactivateFocusMode}
-                      />
-                    : <FocusPanel
-                        session={pomodoroSession!}
-                        currentCheer={currentCheer}
-                        onPause={pausePomo} onResume={resumePomo}
-                        onComplete={completePomo} onStartBreak={startBreak}
-                        onClose={deactivateFocusMode}
-                      />
-                )}
-                {timerMode && (
-                  <TimerPanel
-                    memos={memos}
-                    session={timerSession}
-                    elapsed={timerElapsed}
-                    totalInvested={totalInvested}
-                    currentCheer={currentCheer}
-                    onStart={startTimer}
-                    onPause={pauseTimer}
-                    onResume={resumeTimer}
-                    onStop={stopTimer}
-                    onClose={deactivateTimerMode}
-                    onResetInvested={resetInvestedTime}
-                    onResetElapsed={resetTimerElapsed}
-                  />
-                )}
+                <TimerPanel
+                  memos={memos}
+                  session={timerSession}
+                  elapsed={timerElapsed}
+                  totalInvested={totalInvested}
+                  currentCheer={currentCheer}
+                  onStart={startTimer}
+                  onPause={pauseTimer}
+                  onResume={resumeTimer}
+                  onStop={stopTimer}
+                  onClose={deactivateTimerMode}
+                  onResetInvested={resetInvestedTime}
+                  onResetElapsed={resetTimerElapsed}
+                />
               </div>
             )}
           </main>
@@ -1613,34 +1336,22 @@ export default function MemoWidget() {
         {/* 상태바 */}
         <footer className="buddy-statusbar">
           <div className="buddy-status-cell">
-            <img src="/icon-service-star.png" alt="서비스" className="buddy-status-icon" />버디버디 7.0 서비스 중
+            <img src={theme === "win98" ? "/images/win98/win98-memo-theme.png" : "/images/titlebar-main.png"} alt="서비스" className="buddy-status-icon" />버디버디 7.0 서비스 중
           </div>
           <div className="buddy-progress">
             <div className="buddy-progress-box"><span /><span /><span /><span /><span /></div>
           </div>
           <div className="buddy-status-cell">
-            {pomodoroSession
-              ? <><img src="/icon-active.png" alt="집중" className="buddy-status-icon" />
-                  {`☘ ${pomodoroSession.memoContent.length > 14 ? pomodoroSession.memoContent.slice(0, 14) + "…" : pomodoroSession.memoContent}에 집중 중`}</>
-              : timerSession
-                ? <><img src="/icon-active.png" alt="타이머" className="buddy-status-icon" />
-                    {`⏱ ${timerSession.memoContent.length > 14 ? timerSession.memoContent.slice(0, 14) + "…" : timerSession.memoContent} 기록 중`}</>
-                : <><img src={`/icon-${effectiveView}.png`} alt={currentView.label} className="buddy-status-icon" />{currentView.status}</>
+            {timerSession
+              ? <><img src={theme === "win98" ? "/images/win98/win98-memo-timer.png" : "/icon-active.png"} alt="타이머" className="buddy-status-icon" />
+                  {`⏱ ${timerSession.memoContent.length > 14 ? timerSession.memoContent.slice(0, 14) + "…" : timerSession.memoContent} 기록 중`}</>
+              : <><img src={navIcon(effectiveView, theme)} alt={currentView.label} className="buddy-status-icon" />{currentView.status}</>
             }
           </div>
         </footer>
 
         {/* 파일 가져오기용 히든 input */}
         <input ref={fileInputRef} type="file" accept=".json" onChange={handleImport} style={{ display: "none" }} />
-
-        {/* 뽀모도로 설정 */}
-        {pomodoroOpen && (
-          <PomodoroSetup
-            memos={memos}
-            onStart={handlePomodoroStart}
-            onCancel={() => setPomodoroOpen(false)}
-          />
-        )}
 
         {/* 타이머 설정 */}
         {timerSetupOpen && (
@@ -1680,10 +1391,83 @@ export default function MemoWidget() {
                   onChange={(e) => setDetailContent(e.target.value)}
                   placeholder="내용을 입력하세요..."
                 />
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                <label style={{ margin: 0, whiteSpace: "nowrap", flexShrink: 0 }}>분류 :</label>
+                <div style={{ display: "flex", gap: 5, flex: 1 }}>
+                  {!newCategoryMode ? (
+                    <>
+                      <select
+                        value={detailCategory}
+                        onChange={(e) => setDetailCategory(e.target.value)}
+                        style={{ flex: 1, fontFamily: "inherit", fontSize: 12 }}
+                      >
+                        <option value="">선택 안 함</option>
+                        {Array.from(new Set(memos.map(m => m.category).filter(Boolean))).map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="win98-button"
+                        style={{ fontSize: 11, whiteSpace: "nowrap" }}
+                        onClick={() => { setNewCategoryMode(true); setNewCategoryInput(""); }}
+                      >
+                        + 새 분류
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        autoFocus
+                        value={newCategoryInput}
+                        onChange={(e) => setNewCategoryInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (newCategoryInput.trim()) {
+                              setDetailCategory(newCategoryInput.trim());
+                            }
+                            setNewCategoryMode(false);
+                          }
+                          if (e.key === "Escape") {
+                            setNewCategoryMode(false);
+                          }
+                        }}
+                        placeholder="새 분류명 입력 후 Enter"
+                        style={{ flex: 1, fontFamily: "inherit", fontSize: 12 }}
+                      />
+                      <button
+                        type="button"
+                        className="win98-button"
+                        style={{ fontSize: 11 }}
+                        onClick={() => {
+                          if (newCategoryInput.trim()) setDetailCategory(newCategoryInput.trim());
+                          setNewCategoryMode(false);
+                        }}
+                      >
+                        확인
+                      </button>
+                      <button
+                        type="button"
+                        className="win98-button"
+                        style={{ fontSize: 11 }}
+                        onClick={() => setNewCategoryMode(false)}
+                      >
+                        취소
+                      </button>
+                    </>
+                  )}
+                </div>
+                </div>
                 <div className="memo-option-row">
                   <label>
                     <input type="checkbox" checked={detailImportant} onChange={(e) => setDetailImportant(e.target.checked)} />
                     중요
+                  </label>
+                  <label>
+                    <input type="checkbox" checked={detailToday} onChange={(e) => setDetailToday(e.target.checked)} />
+                    오늘 할 일
                   </label>
                 </div>
                 <div className="memo-modal-buttons">
@@ -1696,9 +1480,12 @@ export default function MemoWidget() {
                         title: detailTitle,
                         content: detailContent,
                         important: detailImportant,
+                        today: detailToday,
+                        category: detailCategory.trim() || undefined,
                       });
                       setDetailTitle(""); setDetailContent("");
-                      setDetailImportant(false);
+                      setDetailImportant(false); setDetailToday(false); setDetailCategory("");
+                      setNewCategoryMode(false); setNewCategoryInput("");
                       setIsDetailOpen(false);
                     }}
                   >
@@ -1731,14 +1518,17 @@ export default function MemoWidget() {
                 </div>
                 {/* 상태 변경 */}
                 <div style={{ display: "flex", gap: 5, marginTop: 12, alignItems: "center", fontSize: 12 }}>
-                  <span style={{ color: "#526733", fontWeight: 700 }}>상태 :</span>
+                  <span style={{ color: theme === "win98" ? "#000000" : "#526733", fontWeight: 700 }}>상태 :</span>
                   {(["진행중", "완료", "보류"] as const).map((s) => (
                     <button
                       key={s}
                       className="win98-button"
                       style={{
                         height: 24, fontSize: 11,
-                        background: selectedMemo.status === s ? "#c8e88a" : undefined,
+                        background: selectedMemo.status === s
+                          ? (theme === "win98" ? "#000080" : "#c8e88a")
+                          : undefined,
+                        color: selectedMemo.status === s && theme === "win98" ? "#ffffff" : undefined,
                       }}
                       onClick={() => {
                         setMemoStatus(selectedMemo.id, s);
@@ -1776,6 +1566,11 @@ export default function MemoWidget() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* 테마 설정 */}
+        {themeOpen && (
+          <ThemeModal current={theme} onSelect={setTheme} onClose={() => setThemeOpen(false)} />
         )}
 
         {/* 모달 */}

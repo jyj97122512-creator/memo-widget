@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Font Preview</title>
+<style>
+@font-face { font-family: 'DungGeunMo';       src: url('/fonts/DungGeunMo.ttf'); }
+@font-face { font-family: 'NeoDunggeunmoPro'; src: url('/fonts/NeoDunggeunmoPro-Regular.ttf'); }
+@font-face { font-family: 'PFStardust';       src: url('/fonts/PFStardust.ttf'); font-weight: 400; }
+@font-face { font-family: 'PFStardust';       src: url('/fonts/PFStardust-Bold.ttf'); font-weight: 700; }
+@font-face { font-family: 'PFStardust';       src: url('/fonts/PFStardust-ExtraBold.ttf'); font-weight: 900; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #dde8bb; padding: 20px; }
+
+h1 { font-family: sans-serif; font-size: 14px; color: #4a5e30; margin-bottom: 16px; }
+
+.grid { display: flex; flex-direction: column; gap: 14px; max-width: 480px; }
+
+.card {
+  background: #f5f7e7;
+  border: 2px solid transparent;
+  border-image: url('/images/frame-b-bevel.png') 2 stretch;
+  padding: 0;
+  overflow: hidden;
+}
+.card-header {
+  background: #e8efd0;
+  border-bottom: 1px solid #b8c49a;
+  padding: 5px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-name { font-family: sans-serif; font-size: 11px; font-weight: bold; color: #526733; }
+.card-tag  { font-family: sans-serif; font-size: 10px; color: #8a9a6a; }
+.card-body { padding: 10px 12px; }
+
+.memo-row {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 6px;
+  padding: 7px 0;
+  border-bottom: 1px dotted #c8d59d;
+  align-items: start;
+}
+.memo-row:last-child { border-bottom: none; }
+.chk { font-size: 13px; line-height: 1.5; color: #7a8a60; }
+.memo-text { font-size: 13px; line-height: 1.5; color: #222; }
+.memo-time { font-size: 10px; color: #999; margin-top: 2px; }
+.memo-done .memo-text { text-decoration: line-through; color: #888; }
+
+/* 각 폰트 적용 */
+.f-current   { font-family: 'Nanum Gothic Coding', monospace; }
+.f-dunggeun  { font-family: 'DungGeunMo', monospace; }
+.f-neo       { font-family: 'NeoDunggeunmoPro', monospace; }
+.f-star      { font-family: 'PFStardust', monospace; font-weight: 400; }
+.f-star-bold { font-family: 'PFStardust', monospace; font-weight: 700; }
+.f-star-xb   { font-family: 'PFStardust', monospace; font-weight: 900; }
+</style>
+</head>
+<body>
+<h1>폰트 비교 — 실제 위젯 레이아웃 기준</h1>
+
+<div class="grid">
+
+  <!-- 현재 -->
+  <div class="card f-current">
+    <div class="card-header">
+      <span class="card-name">현재 — Nanum Gothic Coding</span>
+      <span class="card-tag">기준</span>
+    </div>
+    <div class="card-body">
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">버디버디 메모장에서 할 일을 적어봐요 🍀</div><div class="memo-time">05.31 AM 12:08</div></div></div>
+      <div class="memo-row memo-done"><span class="chk">✔</span><div><div class="memo-text">오늘 점심 뭐 먹을지 고민하기</div><div class="memo-time">05.31 AM 10:00</div></div></div>
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">ABCDEFabcdef 0123456789</div><div class="memo-time">05.31 AM 09:00</div></div></div>
+    </div>
+  </div>
+
+  <!-- 둥근모 -->
+  <div class="card f-dunggeun">
+    <div class="card-header">
+      <span class="card-name">둥근모 (DungGeunMo)</span>
+      <span class="card-tag">픽셀 레트로</span>
+    </div>
+    <div class="card-body">
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">버디버디 메모장에서 할 일을 적어봐요 🍀</div><div class="memo-time">05.31 AM 12:08</div></div></div>
+      <div class="memo-row memo-done"><span class="chk">✔</span><div><div class="memo-text">오늘 점심 뭐 먹을지 고민하기</div><div class="memo-time">05.31 AM 10:00</div></div></div>
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">ABCDEFabcdef 0123456789</div><div class="memo-time">05.31 AM 09:00</div></div></div>
+    </div>
+  </div>
+
+  <!-- Neo둥근모Pro -->
+  <div class="card f-neo">
+    <div class="card-header">
+      <span class="card-name">Neo둥근모Pro</span>
+      <span class="card-tag">픽셀 모던</span>
+    </div>
+    <div class="card-body">
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">버디버디 메모장에서 할 일을 적어봐요 🍀</div><div class="memo-time">05.31 AM 12:08</div></div></div>
+      <div class="memo-row memo-done"><span class="chk">✔</span><div><div class="memo-text">오늘 점심 뭐 먹을지 고민하기</div><div class="memo-time">05.31 AM 10:00</div></div></div>
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">ABCDEFabcdef 0123456789</div><div class="memo-time">05.31 AM 09:00</div></div></div>
+    </div>
+  </div>
+
+  <!-- PF스타더스트 Regular -->
+  <div class="card f-star">
+    <div class="card-header">
+      <span class="card-name">PF스타더스트 Regular</span>
+      <span class="card-tag">weight 400</span>
+    </div>
+    <div class="card-body">
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">버디버디 메모장에서 할 일을 적어봐요 🍀</div><div class="memo-time">05.31 AM 12:08</div></div></div>
+      <div class="memo-row memo-done"><span class="chk">✔</span><div><div class="memo-text">오늘 점심 뭐 먹을지 고민하기</div><div class="memo-time">05.31 AM 10:00</div></div></div>
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">ABCDEFabcdef 0123456789</div><div class="memo-time">05.31 AM 09:00</div></div></div>
+    </div>
+  </div>
+
+  <!-- PF스타더스트 Bold -->
+  <div class="card f-star-bold">
+    <div class="card-header">
+      <span class="card-name">PF스타더스트 Bold</span>
+      <span class="card-tag">weight 700</span>
+    </div>
+    <div class="card-body">
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">버디버디 메모장에서 할 일을 적어봐요 🍀</div><div class="memo-time">05.31 AM 12:08</div></div></div>
+      <div class="memo-row memo-done"><span class="chk">✔</span><div><div class="memo-text">오늘 점심 뭐 먹을지 고민하기</div><div class="memo-time">05.31 AM 10:00</div></div></div>
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">ABCDEFabcdef 0123456789</div><div class="memo-time">05.31 AM 09:00</div></div></div>
+    </div>
+  </div>
+
+  <!-- PF스타더스트 ExtraBold -->
+  <div class="card f-star-xb">
+    <div class="card-header">
+      <span class="card-name">PF스타더스트 ExtraBold</span>
+      <span class="card-tag">weight 900</span>
+    </div>
+    <div class="card-body">
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">버디버디 메모장에서 할 일을 적어봐요 🍀</div><div class="memo-time">05.31 AM 12:08</div></div></div>
+      <div class="memo-row memo-done"><span class="chk">✔</span><div><div class="memo-text">오늘 점심 뭐 먹을지 고민하기</div><div class="memo-time">05.31 AM 10:00</div></div></div>
+      <div class="memo-row"><span class="chk">☐</span><div><div class="memo-text">ABCDEFabcdef 0123456789</div><div class="memo-time">05.31 AM 09:00</div></div></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

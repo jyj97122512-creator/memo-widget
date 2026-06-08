@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Frame Border-Image Preview</title>
+<style>
+  body { background: #dde8bb; font-family: 'Nanum Gothic Coding', monospace; padding: 24px; }
+  h2 { color: #4a5e30; margin-bottom: 4px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 700px; }
+  .card {
+    background: #f5f7e7;
+    padding: 16px;
+    min-height: 100px;
+  }
+  .label { font-size: 12px; font-weight: bold; color: #526733; margin-bottom: 8px; }
+  .code  { font-size: 10px; color: #788a55; background: #edf2da; padding: 4px 6px; margin-bottom: 10px; }
+  .demo  { background: #f5f7e7; padding: 12px; min-height: 60px; font-size: 12px; color: #526733; }
+
+  /* 현재 */
+  .cur  { border: 1px dotted #b9c88d; }
+
+  /* A: 단색 */
+  .a { border: 2px solid transparent;
+       border-image: url('/images/frame-a-solid.png') 2 stretch; }
+
+  /* B: bevel */
+  .b { border: 2px solid transparent;
+       border-image: url('/images/frame-b-bevel.png') 2 stretch; }
+
+  /* C: dotted pattern */
+  .c { border: 2px solid transparent;
+       border-image: url('/images/frame-c-dotted.png') 2 stretch; }
+
+  /* D: double */
+  .d { border: 3px solid transparent;
+       border-image: url('/images/frame-d-double.png') 3 stretch; }
+</style>
+</head>
+<body>
+<h2>border-image 옵션 비교</h2>
+<p style="font-size:12px;color:#6a7d4a;margin-bottom:16px;">각 박스 = .buddy-main 에 적용된 모습</p>
+<div class="grid">
+
+  <div class="card">
+    <div class="label">현재 (기준)</div>
+    <div class="code">border: 1px dotted #b9c88d</div>
+    <div class="demo cur">메모 내용이 여기에 표시됩니다.<br>두 번째 줄 예시입니다.</div>
+  </div>
+
+  <div class="card">
+    <div class="label">A — 단색 실선</div>
+    <div class="code">border-image: frame-a-solid 2 stretch</div>
+    <div class="demo a">메모 내용이 여기에 표시됩니다.<br>두 번째 줄 예시입니다.</div>
+  </div>
+
+  <div class="card">
+    <div class="label">B — Win98 bevel</div>
+    <div class="code">border-image: frame-b-bevel 2 stretch<br>(상/좌 흰색, 하/우 어두운 초록)</div>
+    <div class="demo b">메모 내용이 여기에 표시됩니다.<br>두 번째 줄 예시입니다.</div>
+  </div>
+
+  <div class="card">
+    <div class="label">C — 점선 패턴</div>
+    <div class="code">border-image: frame-c-dotted 2 stretch</div>
+    <div class="demo c">메모 내용이 여기에 표시됩니다.<br>두 번째 줄 예시입니다.</div>
+  </div>
+
+  <div class="card">
+    <div class="label">D — 이중 테두리</div>
+    <div class="code">border-image: frame-d-double 3 stretch</div>
+    <div class="demo d">메모 내용이 여기에 표시됩니다.<br>두 번째 줄 예시입니다.</div>
+  </div>
+
+</div>
+</body>
+</html>

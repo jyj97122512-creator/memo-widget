@@ -2,3 +2,7 @@
 !.env.example
 .next/
 node_modules/
+
+.vercel
+
+tsconfig.tsbuildinfo

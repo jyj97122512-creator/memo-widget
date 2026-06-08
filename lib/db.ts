@@ -1,15 +1,28 @@
-import { getNotionClient } from "./notion";
-
-let cachedDatabaseId: string | null = null;
+import { Client } from "@notionhq/client";
 
 const DB_TITLE = "Memo OS";
+const dbCache = new Map<string, string>();
 
-export async function getDatabaseId(): Promise<string> {
-  if (cachedDatabaseId) return cachedDatabaseId;
+export async function getDatabaseId(
+  notion: Client,
+  cacheKey: string,
+  explicitPageId?: string,
+  explicitDbId?: string
+): Promise<string> {
+  const cached = dbCache.get(cacheKey);
+  if (cached) return cached;
 
-  const notion = getNotionClient();
+  // 클라이언트가 DB ID를 알고 있으면 직접 검증 후 사용 (search 인덱싱 지연 우회)
+  if (explicitDbId) {
+    try {
+      const db = await notion.databases.retrieve({ database_id: explicitDbId });
+      if (!(db as any).archived) {
+        dbCache.set(cacheKey, explicitDbId);
+        return explicitDbId;
+      }
+    } catch {}
+  }
 
-  // 이미 존재하는 데이터베이스 탐색
   const searchResult = await notion.search({
     query: DB_TITLE,
     filter: { property: "object", value: "database" },
@@ -18,45 +31,55 @@ export async function getDatabaseId(): Promise<string> {
   const existing = searchResult.results.find(
     (r) =>
       r.object === "database" &&
-      (r as any).title?.[0]?.plain_text === DB_TITLE
+      (r as any).title?.[0]?.plain_text === DB_TITLE &&
+      !(r as any).archived &&
+      (r as any).properties?.상태 !== undefined
   );
 
   if (existing) {
-    cachedDatabaseId = existing.id;
-    return cachedDatabaseId;
+    dbCache.set(cacheKey, existing.id);
+    return existing.id;
   }
 
-  // 부모로 사용할 접근 가능한 페이지 탐색
-  const pagesResult = await notion.search({
-    filter: { property: "object", value: "page" },
-    page_size: 1,
-  });
+  let parentPageId = explicitPageId;
 
-  if (pagesResult.results.length === 0) {
-    throw new Error("NO_PAGES_ACCESSIBLE");
+  if (!parentPageId) {
+    const pagesResult = await notion.search({
+      filter: { property: "object", value: "page" },
+      page_size: 1,
+    });
+
+    if (pagesResult.results.length === 0) {
+      throw new Error("NO_PAGES_ACCESSIBLE");
+    }
+    parentPageId = pagesResult.results[0].id;
   }
 
-  const parentPageId = pagesResult.results[0].id;
-
-  // 데이터베이스 자동 생성
   const newDb = await notion.databases.create({
     parent: { type: "page_id", page_id: parentPageId },
     icon: { type: "emoji", emoji: "📝" },
     title: [{ type: "text", text: { content: DB_TITLE } }],
     properties: {
-      Content: { title: {} },
-      Hearted: { checkbox: {} },
-      Type: {
+      제목:                  { title: {} },
+      중요:                  { checkbox: {} },
+      오늘:                  { checkbox: {} },
+      상태: {
         select: {
           options: [
-            { name: "memo", color: "blue" },
-            { name: "pinned", color: "yellow" },
+            { name: "진행중", color: "blue"  },
+            { name: "완료",   color: "green" },
+            { name: "보류",   color: "gray"  },
           ],
         },
       },
+      분류:                  { select: { options: [] } },
+      내용:                  { rich_text: {} },
+      "Total Time":        { number: { format: "number" } },
+      "Last Session Time": { number: { format: "number" } },
+      "Last Worked At":    { date: {} },
     },
   });
 
-  cachedDatabaseId = newDb.id;
-  return cachedDatabaseId;
+  dbCache.set(cacheKey, newDb.id);
+  return newDb.id;
 }

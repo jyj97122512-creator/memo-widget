@@ -68,6 +68,11 @@ button { cursor: pointer; }
   font-size: 13px; font-weight: 900; letter-spacing: 1px;
   color: #153209; text-shadow: 1px 1px 0 rgba(255,255,255,.8);
 }
+.buddy-titlebar-mail {
+  height: 13px; width: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
 .buddy-window-buttons { display: flex; align-items: center; gap: 3px; }
 .buddy-win-btn {
   width: 20px; height: 20px;
@@ -107,7 +112,7 @@ button { cursor: pointer; }
 .buddy-toolbar { display:flex; align-items:center; gap: 2px; font-size: 13px; font-weight: 800; }
 .buddy-toolbar-item {
   display:flex; align-items:center; gap: 4px;
-  white-space: nowrap; padding: 2px 8px;
+  white-space: nowrap; padding: 2px 4px;
   background: transparent;
   border: 1px solid transparent;
   color: inherit; cursor: pointer;
@@ -195,6 +200,11 @@ button { cursor: pointer; }
 }
 .buddy-mini-stickers { display:flex; justify-content:center; gap:3px; margin-bottom: 4px; }
 .buddy-mini-sticker { width: 22px; height: 22px; object-fit: contain; }
+.buddy-sidebar-brand {
+  font-size: 10px; font-weight: 900; letter-spacing: 0.5px;
+  color: #7d956a; line-height: 1.3; text-align: center;
+}
+.theme-win98 .buddy-sidebar-brand { color: #444444; }
 
 /* ── 메인 패널 (7단계) ────────────────────────────────── */
 .buddy-main {
@@ -454,7 +464,7 @@ button { cursor: pointer; }
 /* ── 메모 카드 (3단계) ────────────────────────────────── */
 .buddy-memo-row {
   display:grid;
-  grid-template-columns: 18px minmax(0, 1fr) 16px 16px 16px 16px;
+  grid-template-columns: 18px minmax(0, 1fr) 16px 16px 16px 16px 16px;
   align-items: start;
   gap: 6px;
   padding: 9px 8px;
@@ -691,7 +701,7 @@ button { cursor: pointer; }
   .buddy-sidebar-footer { display: none; }
   .buddy-nav-button { min-height: 42px; }
   .buddy-nav-icon { width: 28px; height: 28px; }
-  .buddy-memo-row { grid-template-columns: 16px minmax(0,1fr) 16px 16px 18px 16px; gap:3px; padding:8px 3px; }
+  .buddy-memo-row { grid-template-columns: 16px minmax(0,1fr) 16px 16px 16px 18px 16px; gap:3px; padding:8px 3px; }
   .buddy-select-btn { width: 24px; height: 24px; }
   .buddy-inputbar { gap: 5px; padding: 6px; }
   .buddy-send { width: 62px; }
@@ -1026,11 +1036,13 @@ button { cursor: pointer; }
   background: #eaf2d4;
   flex-shrink: 0;
 }
-.memo-input-bar input {
-  height: 34px;
-  padding: 0 10px;
+.memo-input-bar textarea {
+  min-height: 34px;
+  max-height: 80px;
+  padding: 7px 10px;
   font-family: inherit;
   font-size: 13px;
+  line-height: 1.4;
   background: #fff;
   border-top: 2px solid #7f8d62;
   border-left: 2px solid #7f8d62;
@@ -1038,8 +1050,11 @@ button { cursor: pointer; }
   border-bottom: 2px solid #fff;
   outline: none;
   color: #1a1a1a;
+  resize: none;
+  overflow-y: hidden;
+  box-sizing: border-box;
 }
-.memo-input-bar input::placeholder { color: #83877e; }
+.memo-input-bar textarea::placeholder { color: #83877e; font-size: 11px; line-height: 1.5; }
 
 /* Win98 버튼 공용 */
 .win98-button {
@@ -1419,7 +1434,7 @@ button { cursor: pointer; }
 
 /* ── 입력바 ── */
 .theme-win98 .memo-input-bar { background: #c0c0c0; border-top-color: #808080; }
-.theme-win98 .memo-input-bar input {
+.theme-win98 .memo-input-bar textarea {
   border-top-color: #808080; border-left-color: #808080;
   border-right-color: #ffffff; border-bottom-color: #ffffff;
 }
@@ -1528,3 +1543,20 @@ button { cursor: pointer; }
   border-right: 1px solid #808080; border-bottom: 1px solid #808080;
 }
 .theme-win98 ::-webkit-scrollbar-button { background: #c0c0c0; }
+
+/* ── Win98 이미지 교체 ── */
+/* 툴바 */
+.theme-win98 img[src="/icon-mail-plus.png"]  { content: url('/images/win98/win98-memo-new.png'); }
+.theme-win98 img[src="/icon-home.png"]        { content: url('/images/win98/win98-memo-folder.png'); }
+.theme-win98 img[src="/icon-itemshop.png"]    { content: url('/images/win98/win98-memo-theme.png'); }
+/* 사이드바 nav */
+.theme-win98 img[src="/icon-all.png"]         { content: url('/images/win98/win98-memo-folder.png'); }
+.theme-win98 img[src="/icon-active.png"]      { content: url('/images/win98/win98-memo-timer.png'); }
+.theme-win98 img[src="/icon-completed.png"]   { content: url('/images/win98/win98-memo-done.png'); }
+.theme-win98 img[src="/icon-important.png"]   { content: url('/images/win98/win98-memo-star.png'); }
+/* 메모 행 버튼 */
+.theme-win98 img[src="/images/important-after.png"] { content: url('/images/win98/win98-memo-star.png'); }
+.theme-win98 img[src="/images/completed-on.png"]    { content: url('/images/win98/win98-memo-done.png'); }
+.theme-win98 img[src="/images/delete-default.png"]  { content: url('/images/win98/win98-memo-delete.png'); }
+.theme-win98 img[src="/images/delete-hover.png"]    { content: url('/images/win98/win98-memo-delete.png'); }
+.theme-win98 img[src="/images/move-to-memo.png"]    { content: url('/images/win98/win98-memo-save.png'); }

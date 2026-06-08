@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Important Button Preview</title>
+<style>
+@font-face { font-family: 'DungGeunMo'; src: url('/fonts/DungGeunMo.ttf'); }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #dde8bb; padding: 20px; font-family: 'DungGeunMo', monospace; }
+h2 { font-size: 13px; color: #4a5e30; margin-bottom: 16px; }
+
+.grid { display: flex; flex-direction: column; gap: 12px; max-width: 440px; }
+
+.card {
+  background: #f5f7e7;
+  border: 2px solid transparent;
+  border-image: url('/images/frame-b-bevel.png') 2 stretch;
+  overflow: hidden;
+}
+.card-header {
+  background: #e8efd0; border-bottom: 1px solid #b8c49a;
+  padding: 5px 10px; font-size: 11px; font-weight: bold; color: #526733;
+  display: flex; justify-content: space-between;
+}
+
+/* 메모 행 레이아웃 */
+.memo-row {
+  display: grid;
+  grid-template-columns: 18px minmax(0,1fr) auto auto auto auto;
+  align-items: start;
+  gap: 6px; padding: 9px 8px;
+  border-bottom: 1px dotted #c8d59d;
+  background: #f5f6df;
+}
+.memo-row:last-child { border-bottom: none; }
+
+.chk {
+  width: 14px; height: 14px; margin-top: 3px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #fff;
+  border-top: 1px solid #8f9f6a; border-left: 1px solid #8f9f6a;
+  border-right: 1px solid #fff; border-bottom: 1px solid #fff;
+  font-size: 11px; color: #428e32; font-weight: 900;
+}
+.memo-text { min-width: 0; }
+.memo-content { font-size: 14px; font-weight: 900; line-height: 1.45; color: #1d2417; white-space: pre-wrap; word-break: break-word; }
+.memo-time { margin-top: 3px; font-size: 11px; font-weight: 800; color: #828675; }
+
+/* 공통 버튼 */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; width: 16px; height: 16px; align-self: end;
+  background: #eef3db;
+  border-top: 1px solid #fff; border-left: 1px solid #fff;
+  border-right: 1px solid #9caf73; border-bottom: 1px solid #9caf73;
+  cursor: pointer; font-size: 11px;
+}
+
+/* ── A: 기존 이모지 ─────────────────────── */
+.star-emoji { }
+.star-emoji.off { filter: grayscale(1); opacity: 0.3; }
+
+/* ── B: PNG 이미지 ──────────────────────── */
+.star-img {
+  width: 14px; height: 14px;
+  object-fit: contain;
+  align-self: end;
+  cursor: pointer;
+}
+/* Win98 버튼 래퍼 안에 이미지 */
+.btn-img {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 1px; width: 18px; height: 18px; align-self: end;
+  background: #eef3db;
+  border-top: 1px solid #fff; border-left: 1px solid #fff;
+  border-right: 1px solid #9caf73; border-bottom: 1px solid #9caf73;
+  cursor: pointer;
+}
+.btn-img img { width: 14px; height: 14px; object-fit: contain; }
+
+/* ── C: 이미지만 (버튼 테두리 없음) ────── */
+.star-bare { align-self: end; cursor: pointer; }
+.star-bare img { width: 16px; height: 16px; display: block; object-fit: contain; }
+</style>
+</head>
+<body>
+<h2>중요 버튼 미리보기 — 3가지 적용 방식 비교</h2>
+
+<div class="grid">
+
+  <!-- 현재: 이모지 -->
+  <div class="card">
+    <div class="card-header">
+      <span>현재 — 이모지 ⭐</span><span>기준</span>
+    </div>
+    <div class="memo-row">
+      <div class="chk"></div>
+      <div class="memo-text">
+        <div class="memo-content">중요하지 않은 메모입니다</div>
+        <div class="memo-time">05.31 AM 12:08</div>
+      </div>
+      <div class="btn"><span class="star-emoji off">⭐</span></div>
+      <div class="btn">🤍</div>
+      <div class="btn" style="text-decoration:none;color:#7a8a60">↗</div>
+      <div class="btn" style="color:#9aa083">✕</div>
+    </div>
+    <div class="memo-row">
+      <div class="chk">✓</div>
+      <div class="memo-text">
+        <div class="memo-content" style="text-decoration:line-through;color:#73786b">중요 표시된 메모입니다</div>
+        <div class="memo-time">05.31 AM 10:00</div>
+      </div>
+      <div class="btn"><span class="star-emoji">⭐</span></div>
+      <div class="btn">💚</div>
+      <div class="btn" style="text-decoration:none;color:#7a8a60">↗</div>
+      <div class="btn" style="color:#9aa083">✕</div>
+    </div>
+  </div>
+
+  <!-- A: Win98 버튼 안에 PNG -->
+  <div class="card">
+    <div class="card-header">
+      <span>A — Win98 버튼 테두리 + PNG</span><span>button wrap</span>
+    </div>
+    <div class="memo-row">
+      <div class="chk"></div>
+      <div class="memo-text">
+        <div class="memo-content">중요하지 않은 메모입니다</div>
+        <div class="memo-time">05.31 AM 12:08</div>
+      </div>
+      <div class="btn-img"><img src="/images/important-before.png" alt="중요 아님"></div>
+      <div class="btn">🤍</div>
+      <div class="btn" style="color:#7a8a60">↗</div>
+      <div class="btn" style="color:#9aa083">✕</div>
+    </div>
+    <div class="memo-row">
+      <div class="chk">✓</div>
+      <div class="memo-text">
+        <div class="memo-content" style="text-decoration:line-through;color:#73786b">중요 표시된 메모입니다</div>
+        <div class="memo-time">05.31 AM 10:00</div>
+      </div>
+      <div class="btn-img"><img src="/images/important-after.png" alt="중요"></div>
+      <div class="btn">💚</div>
+      <div class="btn" style="color:#7a8a60">↗</div>
+      <div class="btn" style="color:#9aa083">✕</div>
+    </div>
+  </div>
+
+  <!-- B: 이미지만 (테두리 없음) -->
+  <div class="card">
+    <div class="card-header">
+      <span>B — 이미지만 (테두리 없음)</span><span>bare image</span>
+    </div>
+    <div class="memo-row">
+      <div class="chk"></div>
+      <div class="memo-text">
+        <div class="memo-content">중요하지 않은 메모입니다</div>
+        <div class="memo-time">05.31 AM 12:08</div>
+      </div>
+      <div class="star-bare"><img src="/images/important-before.png" alt="중요 아님"></div>
+      <div class="btn">🤍</div>
+      <div class="btn" style="color:#7a8a60">↗</div>
+      <div class="btn" style="color:#9aa083">✕</div>
+    </div>
+    <div class="memo-row">
+      <div class="chk">✓</div>
+      <div class="memo-text">
+        <div class="memo-content" style="text-decoration:line-through;color:#73786b">중요 표시된 메모입니다</div>
+        <div class="memo-time">05.31 AM 10:00</div>
+      </div>
+      <div class="star-bare"><img src="/images/important-after.png" alt="중요"></div>
+      <div class="btn">💚</div>
+      <div class="btn" style="color:#7a8a60">↗</div>
+      <div class="btn" style="color:#9aa083">✕</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getNotionClient, parseMemo } from "@/lib/notion";
+import { decryptData } from "@/lib/crypto";
 import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+
+function getToken(req: NextRequest): string {
+  const enc = req.headers.get("x-notion-enc-token");
+  if (enc) {
+    try { return decryptData(enc).token; } catch { throw new Error("INVALID_TOKEN"); }
+  }
+  return req.headers.get("x-notion-token") || process.env.NOTION_API_TOKEN || "";
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -8,14 +17,27 @@ export async function PATCH(
 ) {
   try {
     const body = await req.json();
-    const notion = getNotionClient();
+    const notion = getNotionClient(getToken(req));
 
     const properties: Record<string, any> = {};
-    if (body.hearted !== undefined) {
-      properties.Hearted = { checkbox: body.hearted };
+
+    if (body.status !== undefined) {
+      properties.상태 = { select: { name: body.status } };
     }
-    if (body.pinned !== undefined) {
-      properties.Type = { select: { name: body.pinned ? "pinned" : "memo" } };
+    if (body.important !== undefined) {
+      properties.중요 = { checkbox: body.important };
+    }
+    if (body.today !== undefined) {
+      properties.오늘 = { checkbox: body.today };
+    }
+    if (body.totalTime !== undefined) {
+      properties["Total Time"] = { number: body.totalTime };
+    }
+    if (body.lastSessionTime !== undefined) {
+      properties["Last Session Time"] = { number: body.lastSessionTime };
+    }
+    if (body.lastWorkedAt !== undefined) {
+      properties["Last Worked At"] = { date: { start: body.lastWorkedAt } };
     }
 
     const page = await notion.pages.update({
@@ -30,11 +52,11 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const notion = getNotionClient();
+    const notion = getNotionClient(getToken(req));
     await notion.pages.update({
       page_id: params.id,
       archived: true,

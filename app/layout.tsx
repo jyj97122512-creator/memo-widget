@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Nanum_Gothic_Coding } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -7,15 +7,14 @@ export const metadata: Metadata = {
   description: "노션 메모 위젯",
 };
 
-const mono = Nanum_Gothic_Coding({
-  weight: "400",
-  subsets: ["latin"],
+const dungGeunMo = localFont({
+  src: "../public/fonts/DungGeunMo.ttf",
   display: "swap",
 });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className={mono.className}>
+    <html lang="ko" className={dungGeunMo.className}>
       <body>{children}</body>
     </html>
   );
