@@ -1490,6 +1490,18 @@ button { cursor: pointer; }
 
 /* ── 모달 ── */
 .theme-win98 .buddy-pomo-setup,
+/* ── 업데이트 팝업 ─────────────────────────────────────── */
+.update-popup-steps {
+  background: #e8f0d4;
+  border: 1px solid #b8c89a;
+  border-radius: 2px;
+  padding: 8px 10px;
+}
+.theme-win98 .update-popup-steps {
+  background: #d4d0c8;
+  border-color: #808080;
+}
+
 .theme-win98 .buddy-modal,
 .theme-win98 .buddy-pomo-body { background: #c0c0c0; }
 .theme-win98 .buddy-modal-header {

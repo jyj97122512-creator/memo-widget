@@ -461,6 +461,7 @@ export default function MemoWidget() {
   const [notionReady,      setNotionReady]      = useState(false);
   const [needsSetup,       setNeedsSetup]       = useState(false);
   const [showPanelOnMobile, setShowPanelOnMobile] = useState(false);
+  const [showUpdatePopup,  setShowUpdatePopup]  = useState(false);
 
   /* URL ?t= 파라미터 또는 localStorage 토큰 확인 */
   useEffect(() => {
@@ -477,6 +478,19 @@ export default function MemoWidget() {
     }
     setNotionReady(true);
   }, []);
+
+  /* 업데이트 팝업 — 버전 키가 바뀌면 다시 표시됨 */
+  const UPDATE_POPUP_KEY = "buddy-update-seen-v2.1-duedate";
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(UPDATE_POPUP_KEY)) setShowUpdatePopup(true);
+    } catch {}
+  }, []);
+
+  const closeUpdatePopup = () => {
+    try { localStorage.setItem(UPDATE_POPUP_KEY, "1"); } catch {}
+    setShowUpdatePopup(false);
+  };
 
   /* 모든 API 요청에 붙일 헤더 */
   const notionHeader = (): Record<string, string> => {
@@ -1653,6 +1667,46 @@ const saveInvestedTime = (memoId: string, seconds: number) => {
 
         {/* 모달 */}
         {modal && <Modal title={modal.title} body={modal.body} onClose={() => setModal(null)} />}
+
+        {/* 업데이트 안내 팝업 */}
+        {showUpdatePopup && (
+          <div className="buddy-modal-overlay" onMouseDown={closeUpdatePopup}>
+            <div className="buddy-modal update-popup" onMouseDown={(e) => e.stopPropagation()} style={{ maxWidth: 360 }}>
+              <div className="buddy-modal-header">
+                <span>📢 버디메모 업데이트 안내</span>
+                <button className="buddy-modal-close" onClick={closeUpdatePopup}>×</button>
+              </div>
+              <div className="buddy-modal-body">
+                <p style={{ fontWeight: 900, fontSize: 13, marginBottom: 8, color: "#2d4a1a" }}>
+                  📅 마감일 기능이 추가됐어요!
+                </p>
+                <p style={{ marginBottom: 10, color: "#444" }}>
+                  메모에 마감일을 설정하면 카드에 D-Day 뱃지가 표시되고,<br />
+                  상세 보기에서 바로 수정할 수 있어요.
+                </p>
+                <div className="update-popup-steps">
+                  <p style={{ fontWeight: 900, color: "#526733", marginBottom: 6 }}>
+                    ⚙️ 노션 DB 설정이 필요해요
+                  </p>
+                  <ol style={{ paddingLeft: 18, color: "#444", lineHeight: 2 }}>
+                    <li>연결된 노션 DB를 열어주세요</li>
+                    <li>오른쪽 위 <strong>+</strong> 버튼으로 속성 추가</li>
+                    <li>속성 타입 <strong>날짜(Date)</strong> 선택</li>
+                    <li>속성 이름을 정확히 <strong>마감일</strong> 로 입력</li>
+                  </ol>
+                </div>
+                <p style={{ marginTop: 10, fontSize: 11, color: "#888" }}>
+                  설정 전에는 마감일 저장이 되지 않아요.
+                </p>
+                <div style={{ textAlign: "right", marginTop: 14 }}>
+                  <button className="win98-button" style={{ minWidth: 72, height: 28, fontWeight: 900 }} onClick={closeUpdatePopup}>
+                    확인
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
