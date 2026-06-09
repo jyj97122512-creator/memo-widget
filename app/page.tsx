@@ -13,6 +13,7 @@ type Memo = {
   totalTime?: number;
   lastSessionTime?: number;
   lastWorkedAt?: string;
+  dueDate?: string;
   createdAt: string;
   url: string;
 };
@@ -51,6 +52,22 @@ function timeLabel(dateString: string): string {
   const ap = hh >= 12 ? "PM" : "AM";
   const yyyy = d.getFullYear();
   return `${yyyy}.${mm}.${dd}  ${ap} ${String(hh % 12 || 12).padStart(2, "0")}:${mins}`;
+}
+
+function dueDateLabel(dueDate: string): { text: string; cls: string } {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+  const mm = String(due.getMonth() + 1).padStart(2, "0");
+  const dd = String(due.getDate()).padStart(2, "0");
+  const dow = ["일", "월", "화", "수", "목", "금", "토"][due.getDay()];
+  const dateStr = `${due.getFullYear()}.${mm}.${dd}(${dow})`;
+  if (diffDays > 3)  return { text: `📅 ${dateStr}`,       cls: "due-normal" };
+  if (diffDays > 0)  return { text: `⚠️ ${dateStr} D-${diffDays}`, cls: "due-soon" };
+  if (diffDays === 0) return { text: `🔴 ${dateStr} D-Day`,  cls: "due-today" };
+  return               { text: `❗ ${dateStr} D+${Math.abs(diffDays)}`, cls: "due-over" };
 }
 
 function Modal({ title, body, onClose }: ModalData & { onClose: () => void }) {
@@ -322,7 +339,13 @@ function MemoCard({ memo, onToggleDone, onToggleImportant, onToggleToday, onDele
       </button>
       <div className="buddy-memo-text" onClick={onDoubleClick} style={{ cursor: "pointer" }}>
         <p className="buddy-memo-content">{memo.title}</p>
-        <p className="buddy-memo-time">{timeLabel(memo.createdAt)}</p>
+        <p className="buddy-memo-time">
+          {timeLabel(memo.createdAt)}
+          {memo.dueDate && (() => {
+            const { text, cls } = dueDateLabel(memo.dueDate);
+            return <span className={`due-badge ${cls}`}> ~ {text}</span>;
+          })()}
+        </p>
       </div>
       <button onClick={onToggleImportant} className="buddy-img-btn" title={memo.important ? "중요 해제" : "중요 표시"}>
         <img src={w98 ? "/images/win98/win98-memo-star.png" : "/images/important-after.png"} alt="중요" className={memo.important ? "" : "img-off"} />
@@ -417,6 +440,7 @@ export default function MemoWidget() {
   const [detailImportant, setDetailImportant] = useState(false);
   const [detailToday,    setDetailToday]     = useState(false);
   const [detailCategory, setDetailCategory] = useState("");
+  const [detailDueDate,  setDetailDueDate]   = useState("");
   const [newCategoryMode, setNewCategoryMode] = useState(false);
   const [newCategoryInput, setNewCategoryInput] = useState("");
 
@@ -637,6 +661,7 @@ export default function MemoWidget() {
     important?: boolean;
     today?: boolean;
     category?: string;
+    dueDate?: string;
   }) => {
     if (!data.title.trim() || sending) return;
     setSending(true);
@@ -1461,6 +1486,25 @@ const saveInvestedTime = (memoId: string, seconds: number) => {
                 </div>
                 </div>
                 <div className="memo-option-row">
+                  <label style={{ whiteSpace: "nowrap" }}>마감일</label>
+                  <input
+                    type="date"
+                    value={detailDueDate}
+                    onChange={(e) => setDetailDueDate(e.target.value)}
+                    style={{ fontFamily: "inherit", fontSize: 12 }}
+                  />
+                  {detailDueDate && (
+                    <button
+                      type="button"
+                      className="win98-button"
+                      style={{ fontSize: 11 }}
+                      onClick={() => setDetailDueDate("")}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+                <div className="memo-option-row">
                   <label>
                     <input type="checkbox" checked={detailImportant} onChange={(e) => setDetailImportant(e.target.checked)} />
                     중요
@@ -1482,9 +1526,10 @@ const saveInvestedTime = (memoId: string, seconds: number) => {
                         important: detailImportant,
                         today: detailToday,
                         category: detailCategory.trim() || undefined,
+                        dueDate: detailDueDate || undefined,
                       });
                       setDetailTitle(""); setDetailContent("");
-                      setDetailImportant(false); setDetailToday(false); setDetailCategory("");
+                      setDetailImportant(false); setDetailToday(false); setDetailCategory(""); setDetailDueDate("");
                       setNewCategoryMode(false); setNewCategoryInput("");
                       setIsDetailOpen(false);
                     }}
@@ -1515,6 +1560,39 @@ const saveInvestedTime = (memoId: string, seconds: number) => {
                 <div className="memo-view-info">
                   <span>총 투자 시간 : {formatHMS(selectedMemo.totalTime ?? 0)}</span>
                   <span>작성 : {timeLabel(selectedMemo.createdAt)}</span>
+                </div>
+                {/* 마감일 */}
+                <div style={{ display: "flex", gap: 6, marginTop: 8, alignItems: "center", fontSize: 12 }}>
+                  <span style={{ color: theme === "win98" ? "#000000" : "#526733", fontWeight: 700, whiteSpace: "nowrap" }}>마감일 :</span>
+                  <input
+                    type="date"
+                    value={selectedMemo.dueDate ?? ""}
+                    onChange={(e) => {
+                      const val = e.target.value || undefined;
+                      patchMemo(selectedMemo.id, (m) => ({ ...m, dueDate: val }), { dueDate: val ?? null });
+                      setSelectedMemo((p) => p ? { ...p, dueDate: val } : null);
+                    }}
+                    style={{ fontFamily: "inherit", fontSize: 12 }}
+                  />
+                  {selectedMemo.dueDate && (
+                    <>
+                      {(() => {
+                        const { text, cls } = dueDateLabel(selectedMemo.dueDate);
+                        return <span className={`due-badge ${cls}`}>{text}</span>;
+                      })()}
+                      <button
+                        type="button"
+                        className="win98-button"
+                        style={{ fontSize: 11 }}
+                        onClick={() => {
+                          patchMemo(selectedMemo.id, (m) => ({ ...m, dueDate: undefined }), { dueDate: null });
+                          setSelectedMemo((p) => p ? { ...p, dueDate: undefined } : null);
+                        }}
+                      >
+                        삭제
+                      </button>
+                    </>
+                  )}
                 </div>
                 {/* 상태 변경 */}
                 <div style={{ display: "flex", gap: 5, marginTop: 12, alignItems: "center", fontSize: 12 }}>

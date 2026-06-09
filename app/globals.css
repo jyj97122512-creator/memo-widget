@@ -500,6 +500,13 @@ button { cursor: pointer; }
 }
 .buddy-memo-time { margin-top: 3px; font-size: 11px; font-weight: 800; color: #828675; }
 
+/* ── 마감일 뱃지 ───────────────────────────────────── */
+.due-badge { font-size: 11px; font-weight: 800; }
+.due-normal { color: #828675; }
+.due-soon   { color: #c47d0e; }
+.due-today  { color: #c0392b; }
+.due-over   { color: #7d1a14; }
+
 /* ── 이미지 버튼 bounce 애니메이션 ───────────────────── */
 @keyframes buddy-pop {
   0%   { transform: scale(1); }

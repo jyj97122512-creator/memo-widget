@@ -39,6 +39,9 @@ export async function PATCH(
     if (body.lastWorkedAt !== undefined) {
       properties["Last Worked At"] = { date: { start: body.lastWorkedAt } };
     }
+    if (body.dueDate !== undefined) {
+      properties["마감일"] = body.dueDate ? { date: { start: body.dueDate } } : null;
+    }
 
     const page = await notion.pages.update({
       page_id: params.id,

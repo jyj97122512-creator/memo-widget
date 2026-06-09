@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, content, important, today, category } = await req.json();
+    const { title, content, important, today, category, dueDate } = await req.json();
     if (!title?.trim()) {
       return NextResponse.json({ error: "제목을 입력해주세요." }, { status: 400 });
     }
@@ -69,6 +69,9 @@ export async function POST(req: NextRequest) {
       properties.분류 = {
         select: { name: category.trim() },
       };
+    }
+    if (dueDate) {
+      properties.마감일 = { date: { start: dueDate } };
     }
 
     const page = await notion.pages.create({

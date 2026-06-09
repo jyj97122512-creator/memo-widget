@@ -12,6 +12,7 @@ export type Memo = {
   totalTime?: number;
   lastSessionTime?: number;
   lastWorkedAt?: string;
+  dueDate?: string;
   createdAt: string;
   url: string;
 };
@@ -48,6 +49,7 @@ export function parseMemo(page: PageObjectResponse): Memo {
     totalTime: props["Total Time"]?.number ?? props["TotalTime"]?.number ?? 0,
     lastSessionTime: props["Last Session Time"]?.number ?? 0,
     lastWorkedAt: props["Last Worked At"]?.date?.start ?? undefined,
+    dueDate: props["마감일"]?.date?.start ?? undefined,
     createdAt: page.created_time,
     url: page.url,
   };
