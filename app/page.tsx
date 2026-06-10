@@ -568,6 +568,31 @@ export default function MemoWidget() {
     if (notionReady && !needsSetup) fetchMemos();
   }, [notionReady, needsSetup, fetchMemos]);
 
+  /* 날짜 바뀌면 오늘 할 일 자동 해제 */
+  const TODAY_KEY = "buddy-last-visit-date";
+  const todayStr  = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+  useEffect(() => {
+    if (!notionReady || needsSetup || memos.length === 0) return;
+    try {
+      const lastVisit = localStorage.getItem(TODAY_KEY);
+      if (lastVisit && lastVisit !== todayStr) {
+        // 날짜가 바뀐 경우 today=true 메모 일괄 해제
+        const todayMemos = memos.filter((m) => m.today);
+        todayMemos.forEach((m) => {
+          fetch(`/api/memos/${m.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", ...notionHeader() },
+            body: JSON.stringify({ today: false }),
+          }).catch(() => {});
+        });
+        if (todayMemos.length > 0) {
+          setMemos((prev) => prev.map((m) => m.today ? { ...m, today: false } : m));
+        }
+      }
+      localStorage.setItem(TODAY_KEY, todayStr);
+    } catch {}
+  }, [notionReady, needsSetup, memos.length]);
+
 
 /* 마운트: localStorage 투자 시간 + 응원 메시지 로드 + 타이머 세션 복원 */
   useEffect(() => {
