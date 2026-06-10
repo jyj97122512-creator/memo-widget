@@ -18,7 +18,7 @@ type Memo = {
   url: string;
 };
 
-type ViewMode = "all" | "active" | "completed" | "important" | "today";
+type ViewMode = "all" | "active" | "completed" | "important" | "today" | "dday";
 type MenuKey  = "file" | "list" | "tools" | "settings" | "help";
 type ModalData = { title: string; body: React.ReactNode };
 type MenuItem  = { label: string; action: () => void } | { sep: true };
@@ -41,6 +41,7 @@ const VIEWS: Record<ViewMode, { label: string; title: string; empty: string; sta
   important: { label: "중요",      title: "중요한 메모",    empty: "중요 표시한 메모가 없어요.",         status: "별표로 표시한 중요한 메모예요." },
   active:    { label: "진행중",    title: "진행중인 메모",  empty: "진행중인 메모가 없어요.",             status: "아직 끝나지 않은 메모예요." },
   completed: { label: "완료",      title: "완료된 메모",    empty: "완료된 메모가 없어요.",               status: "완료 처리한 메모예요." },
+  dday:      { label: "D-Day",    title: "D-Day 모아보기", empty: "마감일이 설정된 메모가 없어요.",      status: "마감일 순으로 정렬된 메모예요." },
 };
 
 function timeLabel(dateString: string): string {
@@ -308,6 +309,7 @@ const BUDDY_NAV: Record<string, string> = {
   today:     "/images/today.png",
   important: "/images/important2.png",
   active:    "/images/active2.png",
+  dday:      "/icon-dday.png",
 };
 const W98_NAV: Record<string, string> = {
   all:       "/images/win98/win98-memo-folder.png",
@@ -928,11 +930,15 @@ const saveInvestedTime = (memoId: string, seconds: number) => {
       effectiveView === "active"    ? m.status === "진행중" :
       effectiveView === "completed" ? m.status === "완료" :
       effectiveView === "important" ? m.important :
-      effectiveView === "today"     ? m.today === true : true;
+      effectiveView === "today"     ? m.today === true :
+      effectiveView === "dday"      ? !!m.dueDate && m.status !== "완료" : true;
     const inSearch = !showSearch || !searchQuery ||
       m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.content.toLowerCase().includes(searchQuery.toLowerCase());
     return inView && inSearch;
+  }).sort((a, b) => {
+    if (effectiveView !== "dday") return 0;
+    return new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime();
   });
 
   const currentView  = VIEWS[effectiveView];
