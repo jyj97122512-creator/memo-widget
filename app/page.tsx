@@ -65,10 +65,10 @@ function dueDateLabel(dueDate: string): { text: string; cls: string } {
   const dd = String(due.getDate()).padStart(2, "0");
   const dow = ["일", "월", "화", "수", "목", "금", "토"][due.getDay()];
   const dateStr = `${due.getFullYear()}.${mm}.${dd}(${dow})`;
-  if (diffDays > 3)  return { text: `📅 ${dateStr}`,       cls: "due-normal" };
-  if (diffDays > 0)  return { text: `⚠️ ${dateStr} D-${diffDays}`, cls: "due-soon" };
-  if (diffDays === 0) return { text: `🔴 ${dateStr} D-Day`,  cls: "due-today" };
-  return               { text: `❗ ${dateStr} D+${Math.abs(diffDays)}`, cls: "due-over" };
+  if (diffDays > 3)  return { text: `${dateStr}`,              cls: "due-normal" };
+  if (diffDays > 0)  return { text: `${dateStr} D-${diffDays}`, cls: "due-soon" };
+  if (diffDays === 0) return { text: `${dateStr} D-Day`,        cls: "due-today" };
+  return               { text: `${dateStr} D+${Math.abs(diffDays)}`, cls: "due-over" };
 }
 
 function Modal({ title, body, onClose }: ModalData & { onClose: () => void }) {
