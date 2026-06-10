@@ -38,10 +38,10 @@ function formatHMS(seconds: number): string {
 const VIEWS: Record<ViewMode, { label: string; title: string; empty: string; status: string }> = {
   all:       { label: "전체",      title: "전체보기",       empty: "이 목록에는 아직 메모가 없어요.",   status: "버디메모 전체 목록을 보고 있어요." },
   today:     { label: "오늘 할 일", title: "오늘 할 일",    empty: "오늘 할 일로 등록된 메모가 없어요.", status: "오늘 처리할 메모예요." },
+  dday:      { label: "D-Day",    title: "D-Day 모아보기", empty: "마감일이 설정된 메모가 없어요.",      status: "마감일 순으로 정렬된 메모예요." },
   important: { label: "중요",      title: "중요한 메모",    empty: "중요 표시한 메모가 없어요.",         status: "별표로 표시한 중요한 메모예요." },
   active:    { label: "진행중",    title: "진행중인 메모",  empty: "진행중인 메모가 없어요.",             status: "아직 끝나지 않은 메모예요." },
   completed: { label: "완료",      title: "완료된 메모",    empty: "완료된 메모가 없어요.",               status: "완료 처리한 메모예요." },
-  dday:      { label: "D-Day",    title: "D-Day 모아보기", empty: "마감일이 설정된 메모가 없어요.",      status: "마감일 순으로 정렬된 메모예요." },
 };
 
 function timeLabel(dateString: string): string {
